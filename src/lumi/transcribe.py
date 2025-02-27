@@ -72,8 +72,9 @@ class GroqTranscriptionService(TranscriptionService):
             # Open file and send to API
             with open(audio_file, "rb") as audio:
                 logger.debug("Sending file to Groq API")
+                # TODO: Make the model configurable via CLI or environment variable
                 transcription = self.client.audio.transcriptions.create(
-                    model="whisper-large-v3",
+                    model="whisper-large-v3",  # Currently hardcoded, could be configurable
                     file=audio,
                 )
                 

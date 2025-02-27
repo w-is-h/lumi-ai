@@ -10,8 +10,12 @@ dependencies = [
     "pygame>=2.6.1",
     "pynput>=1.7.7",
     "pyperclip>=1.9.0",
-    "pytest>=8.3.4",
     "requests>=2.32.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.4",
     "ruff>=0.9.8",
 ]
 

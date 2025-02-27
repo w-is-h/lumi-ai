@@ -188,7 +188,12 @@ def start_recording():
 
 
 def stop_recording():
-    """Stop recording and process the audio."""
+    """Stop recording and process the audio.
+    
+    Note: Temporary audio files are stored in the system temp directory.
+    These files are not automatically deleted to allow for 
+    troubleshooting, but the OS will typically clean them up eventually.
+    """
     global recording, stream, frames
 
     if not recording:
