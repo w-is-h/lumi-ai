@@ -32,7 +32,7 @@ def main():
     )
     parser.add_argument(
         "--service",
-        help="Transcription service to use (default: groq, options: groq, elevenlabs, mlx)",
+        help="Transcription service to use (default: mlx, options: groq, elevenlabs, mlx)",
     )
     parser.add_argument("--model", help="Model name for the selected transcription service")
     parser.add_argument(

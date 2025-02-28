@@ -88,7 +88,7 @@ def test_groq_transcription_service_from_env():
 
         service = GroqTranscriptionService()
         assert service.api_key == "test_key"
-        assert service.model_name == "whisper-large-v3"  # Default model
+        assert service.model_name == "whisper-large-v3-turbo"  # Default model
         mock_groq.assert_called_once_with(api_key="test_key")
 
 
@@ -99,7 +99,7 @@ def test_groq_transcription_service_with_key():
 
         service = GroqTranscriptionService(api_key="explicit_key")
         assert service.api_key == "explicit_key"
-        assert service.model_name == "whisper-large-v3"  # Default model
+        assert service.model_name == "whisper-large-v3-turbo"  # Default model
         mock_groq.assert_called_once_with(api_key="explicit_key")
 
 
@@ -250,7 +250,7 @@ def test_groq_transcription():
         # We're passing a file object to the API, not the filename
         mock_transcriptions.create.assert_called_once()
         call_args = mock_transcriptions.create.call_args[1]
-        assert call_args["model"] == "whisper-large-v3"
+        assert call_args["model"] == "whisper-large-v3-turbo"
         assert "file" in call_args
 
 
@@ -258,7 +258,7 @@ def test_mlx_whisper_transcription_service_default_model():
     """Test creating an MLX Whisper service with the default model."""
     with patch.dict(os.environ, {}, clear=True):
         service = MLXWhisperTranscriptionService()
-        assert service.model_name == "mlx-community/whisper-medium-mlx-q4"
+        assert service.model_name == "mlx-community/whisper-large-v3-turbo"
 
 
 @patch.dict(os.environ, {"MLX_WHISPER_MODEL": "mlx-community/whisper-large-mlx-q4"})

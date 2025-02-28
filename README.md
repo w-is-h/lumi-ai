@@ -10,17 +10,17 @@ Lumi is a speech-to-text utility that allows quick voice input activated by doub
 - Copies transcription to clipboard and automatically pastes it
 - Plays lightweight notification sounds when recording starts/stops
 - Command-line interface with configuration options
-- Cross-platform support for Windows, macOS, and Linux
+- Primarily tested on macOS (may work on other platforms but not fully tested)
 
 ## Requirements
 
 - Python 3.12+
 - PortAudio library (`brew install portaudio` on macOS)
+- For local transcription (default):
+  - MLX (Apple Silicon Macs only) - no API key needed
 - For cloud transcription (optional):
   - Groq API key or
   - ElevenLabs API key
-- For local transcription:
-  - MLX (Apple Silicon optimized) - no API key needed
 
 ## Installation
 
@@ -43,9 +43,9 @@ Then you can use the `lumi` command directly.
 
 ```bash
 # Choose transcription service
-lumi --service groq           # Use Groq API (default)
+lumi --service mlx            # Use local MLX Whisper (default, no API key needed)
+lumi --service groq           # Use Groq API
 lumi --service elevenlabs     # Use ElevenLabs API
-lumi --service mlx            # Use local MLX Whisper (no API key needed)
 
 # API keys
 lumi --api-key YOUR_GROQ_API_KEY
@@ -82,6 +82,12 @@ lumi --debug                  # Enable debug logging
 - Auto-paste functionality (can be disabled with --no-auto-paste)
 - Platform-aware keyboard shortcuts (Cmd+V on macOS, Ctrl+V elsewhere)
 - Debug mode for troubleshooting with detailed logging
+
+## Platform Support
+
+- **macOS**: Fully supported and tested
+- **Linux/Windows**: Basic functionality may work but not extensively tested
+- **MLX Whisper**: Only works on Apple Silicon Macs
 
 ## Development
 

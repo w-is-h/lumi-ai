@@ -50,7 +50,7 @@ class GroqTranscriptionService(TranscriptionService):
             )
 
         # Set model name with priority: parameter > environment variable > default
-        self.model_name = model_name or os.environ.get("GROQ_MODEL", "whisper-large-v3")
+        self.model_name = model_name or os.environ.get("GROQ_MODEL", "whisper-large-v3-turbo")
         logger.debug(f"Initializing Groq client with model: {self.model_name}")
         self.client = Groq(api_key=self.api_key)
 
@@ -170,7 +170,7 @@ class MLXWhisperTranscriptionService(TranscriptionService):
             model_name: Name of the Whisper model to use. If not provided, it will be read from
                 the MLX_WHISPER_MODEL environment variable or use a default model.
         """
-        default_model = "mlx-community/whisper-medium-mlx-q4"
+        default_model = "mlx-community/whisper-large-v3-turbo"
         self.model_name = model_name or os.environ.get("MLX_WHISPER_MODEL", default_model)
         logger.debug(f"Initializing MLX Whisper with model: {self.model_name}")
 
