@@ -57,6 +57,29 @@ def test_get_transcription_service_invalid():
         get_transcription_service("invalid_service")
 
 
+def test_get_transcription_service_with_model():
+    """Test getting a transcription service with a specific model."""
+    with (
+        patch("lumi.transcribe.GroqTranscriptionService") as mock_groq,
+        patch("lumi.transcribe.ElevenLabsTranscriptionService") as mock_elevenlabs,
+        patch("lumi.transcribe.MLXWhisperTranscriptionService") as mock_mlx,
+    ):
+        # Set up mocks
+        mock_groq.return_value = "groq_service"
+        mock_elevenlabs.return_value = "elevenlabs_service"
+        mock_mlx.return_value = "mlx_service"
+
+        # Test with models
+        get_transcription_service("groq", model_name="whisper-tiny")
+        mock_groq.assert_called_with(model_name="whisper-tiny")
+
+        get_transcription_service("elevenlabs", model_name="custom_model")
+        mock_elevenlabs.assert_called_with(model_name="custom_model")
+
+        get_transcription_service("mlx", model_name="mlx-community/whisper-large-mlx-q4")
+        mock_mlx.assert_called_with(model_name="mlx-community/whisper-large-mlx-q4")
+
+
 @patch.dict(os.environ, {"GROQ_API_KEY": "test_key"})
 def test_groq_transcription_service_from_env():
     """Test creating a Groq service from environment variable."""
@@ -65,6 +88,7 @@ def test_groq_transcription_service_from_env():
 
         service = GroqTranscriptionService()
         assert service.api_key == "test_key"
+        assert service.model_name == "whisper-large-v3"  # Default model
         mock_groq.assert_called_once_with(api_key="test_key")
 
 
@@ -75,7 +99,31 @@ def test_groq_transcription_service_with_key():
 
         service = GroqTranscriptionService(api_key="explicit_key")
         assert service.api_key == "explicit_key"
+        assert service.model_name == "whisper-large-v3"  # Default model
         mock_groq.assert_called_once_with(api_key="explicit_key")
+
+
+def test_groq_transcription_service_with_custom_model():
+    """Test creating a Groq service with a custom model."""
+    with patch("lumi.transcribe.Groq") as mock_groq:
+        mock_groq.return_value = MagicMock()
+
+        service = GroqTranscriptionService(api_key="test_key", model_name="whisper-tiny")
+        assert service.api_key == "test_key"
+        assert service.model_name == "whisper-tiny"  # Custom model
+        mock_groq.assert_called_once_with(api_key="test_key")
+
+
+@patch.dict(os.environ, {"GROQ_API_KEY": "test_key", "GROQ_MODEL": "whisper-medium"})
+def test_groq_transcription_service_model_from_env():
+    """Test creating a Groq service with model from environment variable."""
+    with patch("lumi.transcribe.Groq") as mock_groq:
+        mock_groq.return_value = MagicMock()
+
+        service = GroqTranscriptionService()
+        assert service.api_key == "test_key"
+        assert service.model_name == "whisper-medium"  # From environment
+        mock_groq.assert_called_once_with(api_key="test_key")
 
 
 def test_groq_transcription_service_missing_key():
@@ -93,6 +141,7 @@ def test_elevenlabs_transcription_service_from_env():
 
         service = ElevenLabsTranscriptionService()
         assert service.api_key == "test_key"
+        assert service.model_name == "scribe_v1"  # Default model
         mock_elevenlabs.assert_called_once_with(api_key="test_key")
 
 
@@ -103,7 +152,31 @@ def test_elevenlabs_transcription_service_with_key():
 
         service = ElevenLabsTranscriptionService(api_key="explicit_key")
         assert service.api_key == "explicit_key"
+        assert service.model_name == "scribe_v1"  # Default model
         mock_elevenlabs.assert_called_once_with(api_key="explicit_key")
+
+
+def test_elevenlabs_transcription_service_with_custom_model():
+    """Test creating an ElevenLabs service with a custom model."""
+    with patch("lumi.transcribe.ElevenLabs") as mock_elevenlabs:
+        mock_elevenlabs.return_value = MagicMock()
+
+        service = ElevenLabsTranscriptionService(api_key="test_key", model_name="custom_model")
+        assert service.api_key == "test_key"
+        assert service.model_name == "custom_model"  # Custom model
+        mock_elevenlabs.assert_called_once_with(api_key="test_key")
+
+
+@patch.dict(os.environ, {"ELEVENLABS_API_KEY": "test_key", "ELEVENLABS_MODEL": "alt_model"})
+def test_elevenlabs_transcription_service_model_from_env():
+    """Test creating an ElevenLabs service with model from environment variable."""
+    with patch("lumi.transcribe.ElevenLabs") as mock_elevenlabs:
+        mock_elevenlabs.return_value = MagicMock()
+
+        service = ElevenLabsTranscriptionService()
+        assert service.api_key == "test_key"
+        assert service.model_name == "alt_model"  # From environment
+        mock_elevenlabs.assert_called_once_with(api_key="test_key")
 
 
 def test_elevenlabs_transcription_service_missing_key():
@@ -185,20 +258,20 @@ def test_mlx_whisper_transcription_service_default_model():
     """Test creating an MLX Whisper service with the default model."""
     with patch.dict(os.environ, {}, clear=True):
         service = MLXWhisperTranscriptionService()
-        assert service.model_name == "openai/whisper-tiny"
+        assert service.model_name == "mlx-community/whisper-medium-mlx-q4"
 
 
-@patch.dict(os.environ, {"MLX_WHISPER_MODEL": "openai/whisper-large-v3"})
+@patch.dict(os.environ, {"MLX_WHISPER_MODEL": "mlx-community/whisper-large-mlx-q4"})
 def test_mlx_whisper_transcription_service_from_env():
     """Test creating an MLX Whisper service with model from environment variable."""
     service = MLXWhisperTranscriptionService()
-    assert service.model_name == "openai/whisper-large-v3"
+    assert service.model_name == "mlx-community/whisper-large-mlx-q4"
 
 
 def test_mlx_whisper_transcription_service_with_model():
     """Test creating an MLX Whisper service with an explicit model."""
-    service = MLXWhisperTranscriptionService(model_name="openai/whisper-base")
-    assert service.model_name == "openai/whisper-base"
+    service = MLXWhisperTranscriptionService(model_name="mlx-community/whisper-tiny-mlx-q4")
+    assert service.model_name == "mlx-community/whisper-tiny-mlx-q4"
 
 
 @pytest.mark.skip(reason="Test file does not exist")
@@ -213,11 +286,12 @@ def test_mlx_whisper_transcription():
         mock_transcribe.return_value = {"text": "Transcribed text from MLX Whisper"}
 
         # Call the service
-        service = MLXWhisperTranscriptionService(model_name="test-model")
+        service = MLXWhisperTranscriptionService(model_name="mlx-community/whisper-tiny-mlx-q4")
         result = service.transcribe("test.wav")
 
         # Check the result
         assert result == "Transcribed text from MLX Whisper"
 
         # Verify the correct parameters were passed
-        mock_transcribe.assert_called_once_with("test.wav", path_or_hf_repo="test-model")
+        model_name = "mlx-community/whisper-tiny-mlx-q4"
+        mock_transcribe.assert_called_once_with("test.wav", path_or_hf_repo=model_name)

@@ -34,7 +34,10 @@ def main():
         "--service",
         help="Transcription service to use (default: groq, options: groq, elevenlabs, mlx)",
     )
-    parser.add_argument("--mlx-model", help="Model name for MLX Whisper (if using MLX service)")
+    parser.add_argument("--model", help="Model name for the selected transcription service")
+    parser.add_argument(
+        "--mlx-model", help="Model name for MLX Whisper (deprecated, use --model instead)"
+    )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument(
         "--no-auto-paste", action="store_true", help="Disable automatic pasting of transcription"
@@ -48,8 +51,20 @@ def main():
     if args.elevenlabs_api_key:
         os.environ["ELEVENLABS_API_KEY"] = args.elevenlabs_api_key
 
-    # Set MLX model if provided
-    if args.mlx_model:
+    # Set universal model if provided (takes precedence)
+    if args.model:
+        if args.service and args.service.lower() == "groq":
+            os.environ["GROQ_MODEL"] = args.model
+        elif args.service and args.service.lower() == "elevenlabs":
+            os.environ["ELEVENLABS_MODEL"] = args.model
+        elif args.service and args.service.lower() == "mlx":
+            os.environ["MLX_WHISPER_MODEL"] = args.model
+        else:
+            # Default to setting MLX model if service not specified
+            os.environ["MLX_WHISPER_MODEL"] = args.model
+
+    # For backward compatibility (deprecated)
+    elif args.mlx_model:
         os.environ["MLX_WHISPER_MODEL"] = args.mlx_model
 
     # Set log level

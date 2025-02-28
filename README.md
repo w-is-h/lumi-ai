@@ -42,46 +42,23 @@ Then you can use the `lumi` command directly.
 ### Command-line Options
 
 ```bash
-# Using with specific API key
+# Choose transcription service
+lumi --service groq           # Use Groq API (default)
+lumi --service elevenlabs     # Use ElevenLabs API
+lumi --service mlx            # Use local MLX Whisper (no API key needed)
+
+# API keys
 lumi --api-key YOUR_GROQ_API_KEY
-# or
-uv run -m lumi.cli.s2t_cli --api-key YOUR_GROQ_API_KEY
-
-# Using ElevenLabs API key
 lumi --service elevenlabs --elevenlabs-api-key YOUR_ELEVENLABS_API_KEY
-# or
-uv run -m lumi.cli.s2t_cli --service elevenlabs --elevenlabs-api-key YOUR_ELEVENLABS_API_KEY
 
-# Using environment variable for API keys
-export GROQ_API_KEY=your_groq_api_key
-export ELEVENLABS_API_KEY=your_elevenlabs_api_key
-lumi
-# or
-uv run -m lumi.cli.s2t_cli
+# Specify models
+lumi --service groq --model whisper-tiny
+lumi --service elevenlabs --model custom_model
+lumi --service mlx --model mlx-community/whisper-large-mlx-q4
 
-# Enable debug logging
-lumi --debug
-# or
-uv run -m lumi.cli.s2t_cli --debug
-
-# Specify transcription service
-lumi --service groq  # Use Groq (default)
-lumi --service elevenlabs  # Use ElevenLabs
-lumi --service mlx  # Use local MLX Whisper (no API key needed)
-# or
-uv run -m lumi.cli.s2t_cli --service groq
-uv run -m lumi.cli.s2t_cli --service elevenlabs
-uv run -m lumi.cli.s2t_cli --service mlx
-
-# Specify MLX Whisper model
-lumi --service mlx --mlx-model openai/whisper-large-v3
-# or
-uv run -m lumi.cli.s2t_cli --service mlx --mlx-model openai/whisper-large-v3
-
-# Disable auto-pasting of transcriptions
-lumi --no-auto-paste
-# or
-uv run -m lumi.cli.s2t_cli --no-auto-paste
+# Other options
+lumi --no-auto-paste          # Disable auto-pasting
+lumi --debug                  # Enable debug logging
 ```
 
 ### Basic Usage

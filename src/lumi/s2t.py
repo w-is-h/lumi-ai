@@ -5,7 +5,6 @@ import tempfile
 import time
 import traceback
 import wave
-import time
 
 import pyaudio
 import pyperclip
@@ -122,7 +121,7 @@ def start_recording():
 
         # Play start sound
         play_sound(is_start=True)
-        time.sleep(0.4) # Needed, otherwise the start sound does not play
+        time.sleep(0.5)  # Needed, otherwise the start sound does not play
 
         # Reset frames
         frames = []
@@ -243,8 +242,17 @@ def transcribe_audio(audio_file):
     logger.info(f"Sending {audio_file} to {TRANSCRIPTION_SERVICE} transcription service...")
 
     try:
-        # Get the appropriate transcription service
-        transcription_service = get_transcription_service(TRANSCRIPTION_SERVICE)
+        # Get model name from environment if set
+        model_name = None
+        if TRANSCRIPTION_SERVICE.lower() == "groq":
+            model_name = os.environ.get("GROQ_MODEL")
+        elif TRANSCRIPTION_SERVICE.lower() == "elevenlabs":
+            model_name = os.environ.get("ELEVENLABS_MODEL")
+        elif TRANSCRIPTION_SERVICE.lower() == "mlx":
+            model_name = os.environ.get("MLX_WHISPER_MODEL")
+
+        # Get the appropriate transcription service with model name if available
+        transcription_service = get_transcription_service(TRANSCRIPTION_SERVICE, model_name)
 
         # Transcribe the audio file
         transcript = transcription_service.transcribe(audio_file)
