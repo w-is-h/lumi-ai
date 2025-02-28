@@ -28,15 +28,24 @@ def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Lumi Speech-to-Text")
     parser.add_argument("--api-key", help="API key for the transcription service")
-    parser.add_argument("--service", help="Transcription service to use (default: groq)")
+    parser.add_argument(
+        "--elevenlabs-api-key", help="API key for ElevenLabs (if using ElevenLabs service)"
+    )
+    parser.add_argument(
+        "--service", 
+        help="Transcription service to use (default: groq, options: groq, elevenlabs)"
+    )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument("--no-auto-paste", action="store_true", 
                        help="Disable automatic pasting of transcription")
     args = parser.parse_args()
 
-    # Set API key if provided
+    # Set API keys if provided
     if args.api_key:
         os.environ["GROQ_API_KEY"] = args.api_key
+        
+    if args.elevenlabs_api_key:
+        os.environ["ELEVENLABS_API_KEY"] = args.elevenlabs_api_key
 
     # Set log level
     if args.debug:

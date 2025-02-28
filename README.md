@@ -6,7 +6,7 @@ Lumi is a speech-to-text utility that allows quick voice input activated by doub
 
 - Easy activation with double-tap Option key hotkey
 - Single-tap to stop recording (more intuitive)
-- Automatically transcribes speech when recording stops using Groq's API
+- Automatically transcribes speech when recording stops using Groq or ElevenLabs APIs
 - Copies transcription to clipboard and automatically pastes it
 - Plays notification sounds when recording starts/stops
 - Command-line interface with configuration options
@@ -16,7 +16,9 @@ Lumi is a speech-to-text utility that allows quick voice input activated by doub
 
 - Python 3.12+
 - PortAudio library (`brew install portaudio` on macOS)
-- Groq API key for speech-to-text functionality
+- API key for speech-to-text functionality:
+  - Groq API key or
+  - ElevenLabs API key
 
 ## Installation
 
@@ -43,8 +45,14 @@ lumi --api-key YOUR_GROQ_API_KEY
 # or
 uv run -m lumi.cli.s2t_cli --api-key YOUR_GROQ_API_KEY
 
-# Using environment variable for API key
-export GROQ_API_KEY=your_api_key
+# Using ElevenLabs API key
+lumi --service elevenlabs --elevenlabs-api-key YOUR_ELEVENLABS_API_KEY
+# or
+uv run -m lumi.cli.s2t_cli --service elevenlabs --elevenlabs-api-key YOUR_ELEVENLABS_API_KEY
+
+# Using environment variable for API keys
+export GROQ_API_KEY=your_groq_api_key
+export ELEVENLABS_API_KEY=your_elevenlabs_api_key
 lumi
 # or
 uv run -m lumi.cli.s2t_cli
@@ -54,10 +62,12 @@ lumi --debug
 # or
 uv run -m lumi.cli.s2t_cli --debug
 
-# Specify transcription service (currently only groq supported)
-lumi --service groq
+# Specify transcription service
+lumi --service groq  # Use Groq (default)
+lumi --service elevenlabs  # Use ElevenLabs
 # or
 uv run -m lumi.cli.s2t_cli --service groq
+uv run -m lumi.cli.s2t_cli --service elevenlabs
 
 # Disable auto-pasting of transcriptions
 lumi --no-auto-paste

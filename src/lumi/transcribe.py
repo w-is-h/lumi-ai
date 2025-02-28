@@ -7,6 +7,7 @@ import os
 import traceback
 from typing import Optional
 
+from elevenlabs.client import ElevenLabs
 from groq import Groq
 
 # Get logger
@@ -87,6 +88,67 @@ class GroqTranscriptionService(TranscriptionService):
             return f"[Transcription error: {str(e)}]"
 
 
+class ElevenLabsTranscriptionService(TranscriptionService):
+    """Transcription service using ElevenLabs API."""
+
+    def __init__(self, api_key: Optional[str] = None):
+        """Initialize the ElevenLabs transcription service.
+
+        Args:
+            api_key: ElevenLabs API key. If not provided, it will be read from
+                the ELEVENLABS_API_KEY environment variable.
+        """
+        self.api_key = api_key or os.environ.get("ELEVENLABS_API_KEY")
+        if not self.api_key:
+            logger.error("ElevenLabs API key not provided")
+            raise ValueError(
+                "ElevenLabs API key not provided. "
+                "Please set the ELEVENLABS_API_KEY environment variable."
+            )
+        logger.debug("Initializing ElevenLabs client")
+        self.client = ElevenLabs(api_key=self.api_key)
+
+    def transcribe(self, audio_file: str) -> str:
+        """Transcribe an audio file using ElevenLabs API.
+
+        Args:
+            audio_file: Path to the audio file to transcribe.
+
+        Returns:
+            Transcribed text.
+        """
+        logger.debug(f"Transcribing audio file with ElevenLabs: {audio_file}")
+
+        try:
+            # Simple check if file exists
+            if not os.path.exists(audio_file):
+                logger.error(f"Audio file not found: {audio_file}")
+                return "[Transcription error: File not found]"
+
+            # Simple check if file is empty
+            if os.path.getsize(audio_file) == 0:
+                logger.error("Audio file is empty")
+                return "[Transcription error: File is empty]"
+                
+            # Open file and send to API
+            with open(audio_file, "rb") as audio:
+                logger.debug("Sending file to ElevenLabs API")
+                transcription = self.client.speech_to_text.convert(
+                    file=audio,
+                    model_id="scribe_v1",
+                    tag_audio_events=False,
+                    diarize=False,
+                )
+                
+            logger.debug("ElevenLabs transcription successful")
+            return transcription.text
+                
+        except Exception as e:
+            logger.error(f"Error during ElevenLabs transcription: {e}")
+            logger.debug(f"Stack trace: {traceback.format_exc()}")
+            return f"[Transcription error: {str(e)}]"
+
+
 # Factory function to get the appropriate transcription service
 def get_transcription_service(service_name: str) -> TranscriptionService:
     """Get a transcription service by name.
@@ -105,6 +167,9 @@ def get_transcription_service(service_name: str) -> TranscriptionService:
     if service_name.lower() == "groq":
         logger.debug("Using Groq transcription service")
         return GroqTranscriptionService()
+    elif service_name.lower() == "elevenlabs":
+        logger.debug("Using ElevenLabs transcription service")
+        return ElevenLabsTranscriptionService()
     else:
         logger.error(f"Unknown transcription service: {service_name}")
         raise ValueError(f"Unknown transcription service: {service_name}")

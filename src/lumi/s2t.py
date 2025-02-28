@@ -27,7 +27,7 @@ DOUBLE_TAP_TIME = 0.3  # Maximum time between taps to count as double-tap
 TEMP_DIR = os.path.join(tempfile.gettempdir(), "speech_to_text")
 START_SOUND_FILE = "ding.mp3"  # Located in the same folder as the script
 STOP_SOUND_FILE = "dong.mp3"  # Located in the same folder as the script
-TRANSCRIPTION_SERVICE = "groq"  # Transcription service to use (options: "groq")
+TRANSCRIPTION_SERVICE = "groq"  # Transcription service to use (options: "groq", "elevenlabs")
 
 # State variables
 SINGLE_TAP_STOPS = True  # Allow single tap to stop recording

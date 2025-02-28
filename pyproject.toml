@@ -5,6 +5,7 @@ description = "Speech-to-text utility with hotkey activation"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "elevenlabs>=1.52.0",
     "groq>=0.18.0",
     "pyaudio>=0.2.14",
     "pygame>=2.6.1",
