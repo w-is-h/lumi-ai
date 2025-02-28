@@ -1,6 +1,24 @@
 # Lumi
 
-Lumi is a speech-to-text utility that allows quick voice input activated by double-tapping the Option key.
+Lumi is a speech-to-text utility that lets you instantly transcribe your speech with a simple keyboard shortcut.
+
+## Quick Start
+
+```bash
+# Install Lumi
+pip install lumi-ai
+
+# Start Lumi
+lumi
+```
+
+Then:
+1. **Double-tap Option key** → Start recording
+2. Speak clearly
+3. **Single-tap Option key** → Stop recording
+4. Your transcription appears instantly where your cursor is! As well as in your clipboard, so you can paste it.
+
+That's it! No complicated setup or configuration needed.
 
 ## Features
 
@@ -46,7 +64,7 @@ For development:
 uv pip install -e .
 ```
 
-## Usage
+## Advanced Configuration
 
 ### Command-line Options
 
@@ -69,13 +87,6 @@ lumi --service mlx --model mlx-community/whisper-large-v3-turbo
 lumi --no-auto-paste          # Disable auto-pasting
 lumi --debug                  # Enable debug logging
 ```
-
-### Basic Usage
-
-1. Double-tap the Option key to START recording
-2. Speak clearly into your microphone
-3. Single-tap Option to STOP recording
-4. The transcription will be copied to your clipboard and automatically pasted at your cursor position
 
 ### Keyboard Controls
 
