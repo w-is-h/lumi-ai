@@ -2,6 +2,8 @@
 
 Lumi is a speech-to-text utility that lets you instantly transcribe your speech with a simple keyboard shortcut.
 
+This was `vibe-coded` using claude-code, R1 and o3-mini.
+
 ## Quick Start
 
 ```bash
