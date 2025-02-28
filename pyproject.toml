@@ -1,9 +1,20 @@
 [project]
-name = "lumi"
-version = "0.1.0"
+name = "lumi-ai"
+version = "0.1.1"
 description = "Speech-to-text utility with hotkey activation"
 readme = "README.md"
 requires-python = ">=3.12"
+authors = [
+    {name = "Lumi Developers"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Topic :: Utilities",
+    "Intended Audience :: End Users/Desktop",
+]
 dependencies = [
     "elevenlabs>=1.52.0",
     "groq>=0.18.0",
@@ -14,6 +25,13 @@ dependencies = [
     "pyperclip>=1.9.0",
     "requests>=2.32.3",
 ]
+
+[tool.setuptools]
+packages = ["lumi", "lumi.cli"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+lumi = ["*.mp3"]
 
 [project.optional-dependencies]
 dev = [
