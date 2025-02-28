@@ -62,14 +62,7 @@ After installation, you can use the `lumi` command directly from your terminal.
 
 ### From Source
 1. Clone this repository
-2. Install dependencies with `uv sync`
-3. Run with `uv run -m src.lumi.s2t`
-
-### Development Installation
-For development:
-```bash
-uv pip install -e .
-```
+2. Run with `uv run -m src.lumi.s2t` # This will install what is needed
 
 ## Advanced Configuration
 
@@ -81,7 +74,7 @@ lumi --service mlx            # Use local MLX Whisper (default, no API key neede
 lumi --service groq           # Use Groq API
 lumi --service elevenlabs     # Use ElevenLabs API
 
-# API keys
+# API keys, if for whatever reason you hate env vars
 lumi --api-key YOUR_GROQ_API_KEY
 lumi --service elevenlabs --elevenlabs-api-key YOUR_ELEVENLABS_API_KEY
 
@@ -113,7 +106,7 @@ lumi --debug                  # Enable debug logging
 ## Platform Support
 
 - **macOS**: Fully supported and tested
-- **Linux/Windows**: Basic functionality may work but not extensively tested
+- **Linux/Windows**: Basic functionality may work but not extensively tested (claude is optimisic, there is no way it will work on windows)
 - **MLX Whisper**: Only works on Apple Silicon Macs
 
 ## Development
