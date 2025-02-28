@@ -20,6 +20,8 @@ Then:
 
 That's it! No complicated setup or configuration needed.
 
+NOTE! First time you run it, if using MLX it will need to download models, so might take a bit, when you see `Speech-to-text service started.` it means all is ready.
+
 ## Features
 
 - Easy activation with double-tap Option key hotkey
