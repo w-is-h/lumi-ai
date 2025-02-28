@@ -5,8 +5,11 @@ Lumi is a speech-to-text utility that lets you instantly transcribe your speech 
 ## Quick Start
 
 ```bash
+# Install requirements on MacOS
+brew install portaudio
+
 # Install Lumi
-pip install lumi-ai
+pip install lumi-ai # or uv pip install lumi-ai
 
 # Start Lumi
 lumi
