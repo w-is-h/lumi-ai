@@ -24,18 +24,27 @@ Lumi is a speech-to-text utility that allows quick voice input activated by doub
 
 ## Installation
 
+### From PyPI
+```bash
+pip install lumi-ai
+```
+Or with uv:
+```bash
+uv pip install lumi-ai
+```
+
+After installation, you can use the `lumi` command directly from your terminal.
+
 ### From Source
 1. Clone this repository
 2. Install dependencies with `uv sync`
 3. Run with `uv run -m src.lumi.s2t`
 
-### As Command-line Tool
-After installing dependencies:
+### Development Installation
+For development:
 ```bash
 uv pip install -e .
 ```
-
-Then you can use the `lumi` command directly.
 
 ## Usage
 
@@ -52,9 +61,9 @@ lumi --api-key YOUR_GROQ_API_KEY
 lumi --service elevenlabs --elevenlabs-api-key YOUR_ELEVENLABS_API_KEY
 
 # Specify models
-lumi --service groq --model whisper-tiny
-lumi --service elevenlabs --model custom_model
-lumi --service mlx --model mlx-community/whisper-large-mlx-q4
+lumi --service groq --model whisper-large-v3-turbo
+lumi --service elevenlabs --model scribe_v1
+lumi --service mlx --model mlx-community/whisper-large-v3-turbo
 
 # Other options
 lumi --no-auto-paste          # Disable auto-pasting
