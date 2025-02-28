@@ -128,7 +128,7 @@ def play_sound(is_start=True):
 
 def start_recording():
     """Start recording audio from the microphone."""
-    global recording, stream, frames
+    global recording, stream, frames, audio
 
     # Don't start if already recording
     if recording:
@@ -136,9 +136,8 @@ def start_recording():
         return
 
     try:
-        # Ensure audio is initialized
-        if audio is None:
-            setup_audio()
+        # Always reinitialize audio to ensure we have the latest system state
+        setup_audio()
 
         # Play start sound
         play_sound(is_start=True)
@@ -146,8 +145,9 @@ def start_recording():
         # Reset frames
         frames = []
 
-        # Get input device
+        # Get current default input device
         device_index = get_default_input_device()
+        logger.info(f"Using input device index: {device_index}")
 
         # Open stream with callback function to collect frames
         def callback(in_data, frame_count, time_info, status):
