@@ -9,7 +9,6 @@ import os
 import time
 import traceback
 
-import pygame
 from pynput import keyboard
 
 import lumi.s2t
@@ -32,20 +31,26 @@ def main():
         "--elevenlabs-api-key", help="API key for ElevenLabs (if using ElevenLabs service)"
     )
     parser.add_argument(
-        "--service", 
-        help="Transcription service to use (default: groq, options: groq, elevenlabs)"
+        "--service",
+        help="Transcription service to use (default: groq, options: groq, elevenlabs, mlx)",
     )
+    parser.add_argument("--mlx-model", help="Model name for MLX Whisper (if using MLX service)")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-    parser.add_argument("--no-auto-paste", action="store_true", 
-                       help="Disable automatic pasting of transcription")
+    parser.add_argument(
+        "--no-auto-paste", action="store_true", help="Disable automatic pasting of transcription"
+    )
     args = parser.parse_args()
 
     # Set API keys if provided
     if args.api_key:
         os.environ["GROQ_API_KEY"] = args.api_key
-        
+
     if args.elevenlabs_api_key:
         os.environ["ELEVENLABS_API_KEY"] = args.elevenlabs_api_key
+
+    # Set MLX model if provided
+    if args.mlx_model:
+        os.environ["MLX_WHISPER_MODEL"] = args.mlx_model
 
     # Set log level
     if args.debug:
@@ -55,14 +60,14 @@ def main():
     # Update the transcription service if provided
     if args.service:
         lumi.s2t.TRANSCRIPTION_SERVICE = args.service
-        
+
     # Update auto-paste setting if specified
     if args.no_auto_paste:
         lumi.s2t.AUTO_PASTE = False
         logger.info("Auto-pasting disabled")
 
     keyboard_listener = None
-    
+
     try:
         # Setup audio
         setup_audio()
@@ -70,7 +75,7 @@ def main():
         # Start keyboard listener
         keyboard_listener = keyboard.Listener(on_press=on_press, on_release=on_release)
         keyboard_listener.start()
-        
+
         logger.info("Speech-to-text service started.")
         logger.info(f"Using {lumi.s2t.TRANSCRIPTION_SERVICE} transcription service.")
         logger.info("Double-tap the Option key to START recording.")
@@ -96,11 +101,11 @@ def main():
         # Clean up keyboard listener
         if keyboard_listener is not None and keyboard_listener.is_alive():
             keyboard_listener.stop()
-            
+
         # Clean up resources
         if recording:
             stop_recording()
-            
+
         # Clean up audio
         if lumi.s2t.audio is not None:
             try:
@@ -108,16 +113,12 @@ def main():
             except Exception as e:
                 logger.error(f"Error terminating audio: {e}")
             lumi.s2t.audio = None
-            
-        # Clean up pygame
-        try:
-            pygame.mixer.quit()
-            pygame.quit()
-        except Exception as e:
-            logger.error(f"Error cleaning up pygame: {e}")
-            
+
+        # No additional cleanup needed for sound playing now
+
         # Final GC to clean up any remaining resources
         import gc
+
         gc.collect()
 
 

@@ -6,9 +6,9 @@ Lumi is a speech-to-text utility that allows quick voice input activated by doub
 
 - Easy activation with double-tap Option key hotkey
 - Single-tap to stop recording (more intuitive)
-- Automatically transcribes speech when recording stops using Groq or ElevenLabs APIs
+- Automatically transcribes speech when recording stops using Groq, ElevenLabs APIs, or local MLX Whisper
 - Copies transcription to clipboard and automatically pastes it
-- Plays notification sounds when recording starts/stops
+- Plays lightweight notification sounds when recording starts/stops
 - Command-line interface with configuration options
 - Cross-platform support for Windows, macOS, and Linux
 
@@ -16,9 +16,11 @@ Lumi is a speech-to-text utility that allows quick voice input activated by doub
 
 - Python 3.12+
 - PortAudio library (`brew install portaudio` on macOS)
-- API key for speech-to-text functionality:
+- For cloud transcription (optional):
   - Groq API key or
   - ElevenLabs API key
+- For local transcription:
+  - MLX (Apple Silicon optimized) - no API key needed
 
 ## Installation
 
@@ -65,9 +67,16 @@ uv run -m lumi.cli.s2t_cli --debug
 # Specify transcription service
 lumi --service groq  # Use Groq (default)
 lumi --service elevenlabs  # Use ElevenLabs
+lumi --service mlx  # Use local MLX Whisper (no API key needed)
 # or
 uv run -m lumi.cli.s2t_cli --service groq
 uv run -m lumi.cli.s2t_cli --service elevenlabs
+uv run -m lumi.cli.s2t_cli --service mlx
+
+# Specify MLX Whisper model
+lumi --service mlx --mlx-model openai/whisper-large-v3
+# or
+uv run -m lumi.cli.s2t_cli --service mlx --mlx-model openai/whisper-large-v3
 
 # Disable auto-pasting of transcriptions
 lumi --no-auto-paste

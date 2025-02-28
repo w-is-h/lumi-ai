@@ -5,10 +5,11 @@ import tempfile
 import time
 import traceback
 import wave
+import time
 
 import pyaudio
-import pygame
 import pyperclip
+from nava import play
 from pynput import keyboard
 from pynput.keyboard import Controller, Key
 
@@ -32,9 +33,6 @@ TRANSCRIPTION_SERVICE = "groq"  # Transcription service to use (options: "groq",
 # State variables
 SINGLE_TAP_STOPS = True  # Allow single tap to stop recording
 AUTO_PASTE = True  # Automatically paste the transcription
-
-# Initialize pygame mixer for sound
-pygame.mixer.init()
 
 # Initialize keyboard controller for pasting
 keyboard_controller = Controller()
@@ -86,41 +84,24 @@ def get_default_input_device():
         raise err from None
 
 
-# Cache Sound objects to avoid reloading them every time
-start_sound = None
-stop_sound = None
-
 def play_sound(is_start=True):
-    """Play the notification sound.
+    """Play the notification sound using nava.
 
     Args:
         is_start: If True, play the start sound, otherwise play the stop sound.
     """
-    global start_sound, stop_sound
-    
     try:
         # Get the directory of the current script
         script_dir = os.path.dirname(os.path.abspath(__file__))
         sound_file = START_SOUND_FILE if is_start else STOP_SOUND_FILE
         sound_path = os.path.join(script_dir, sound_file)
 
-        if os.path.exists(sound_path):
-            # Use cached Sound objects
-            if is_start:
-                if start_sound is None:
-                    start_sound = pygame.mixer.Sound(sound_path)
-                sound = start_sound
-            else:
-                if stop_sound is None:
-                    stop_sound = pygame.mixer.Sound(sound_path)
-                sound = stop_sound
-                
-            # Play the sound
-            sound.play()
-            # Small delay to ensure sound starts playing before the function returns
-            pygame.time.wait(100)  # 100ms should be enough to start playback
-        else:
+        if not os.path.exists(sound_path):
             logger.warning(f"Sound file not found: {sound_path}")
+            return
+
+        # Play the sound asynchronously so it doesn't block
+        play(sound_path, async_mode=True, loop=False)
     except Exception as e:
         logger.error(f"Error playing sound: {e}")
         logger.debug(f"Stack trace: {traceback.format_exc()}")
@@ -141,6 +122,7 @@ def start_recording():
 
         # Play start sound
         play_sound(is_start=True)
+        time.sleep(0.4) # Needed, otherwise the start sound does not play
 
         # Reset frames
         frames = []
@@ -154,7 +136,7 @@ def start_recording():
             if recording:
                 frames.append(in_data)
             return (None, pyaudio.paContinue)
-            
+
         # Open stream with callback
         stream = audio.open(
             format=FORMAT,
@@ -163,9 +145,9 @@ def start_recording():
             input=True,
             input_device_index=device_index,
             frames_per_buffer=CHUNK,
-            stream_callback=callback
+            stream_callback=callback,
         )
-        
+
         stream.start_stream()
         logger.info("Recording started...")
         recording = True
@@ -174,7 +156,7 @@ def start_recording():
         logger.error(f"Error starting recording: {e}")
         logger.debug(f"Stack trace: {traceback.format_exc()}")
         recording = False
-        
+
         # Clean up resources if there was an error
         if stream:
             try:
@@ -182,16 +164,16 @@ def start_recording():
             except Exception:
                 pass
             stream = None
-            
+
         # Try to reconnect audio if there was an error
         setup_audio()
 
 
 def stop_recording():
     """Stop recording and process the audio.
-    
+
     Note: Temporary audio files are stored in the system temp directory.
-    These files are not automatically deleted to allow for 
+    These files are not automatically deleted to allow for
     troubleshooting, but the OS will typically clean them up eventually.
     """
     global recording, stream, frames
@@ -201,7 +183,7 @@ def stop_recording():
 
     # Mark as not recording first
     recording = False
-    
+
     # Make a copy of frames
     local_frames = list(frames)
     frames = []
@@ -239,7 +221,7 @@ def stop_recording():
                 if transcript:
                     pyperclip.copy(transcript)
                     logger.info(f"Transcript copied to clipboard: {transcript}")
-                    
+
                     # Auto-paste if enabled
                     if AUTO_PASTE:
                         auto_paste()
@@ -250,7 +232,7 @@ def stop_recording():
     except Exception as e:
         logger.error(f"Error stopping recording: {e}")
         logger.debug(f"Stack trace: {traceback.format_exc()}")
-        
+
     finally:
         # Make sure recording is set to False
         recording = False
@@ -311,21 +293,21 @@ def auto_paste():
     try:
         # Small delay to ensure the clipboard is ready
         time.sleep(0.5)
-        
+
         # Determine the correct paste shortcut based on OS
         if platform.system() == "Darwin":  # macOS
             logger.debug("Using macOS paste shortcut (Command+V)")
             keyboard_controller.press(Key.cmd)
-            keyboard_controller.press('v')
-            keyboard_controller.release('v')
+            keyboard_controller.press("v")
+            keyboard_controller.release("v")
             keyboard_controller.release(Key.cmd)
         else:  # Windows/Linux
             logger.debug("Using Windows/Linux paste shortcut (Control+V)")
             keyboard_controller.press(Key.ctrl)
-            keyboard_controller.press('v')
-            keyboard_controller.release('v')
+            keyboard_controller.press("v")
+            keyboard_controller.release("v")
             keyboard_controller.release(Key.ctrl)
-            
+
         logger.info("Auto-paste completed")
     except Exception as e:
         logger.error(f"Error during auto-paste: {e}")

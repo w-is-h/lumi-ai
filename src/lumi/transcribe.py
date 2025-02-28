@@ -7,6 +7,7 @@ import os
 import traceback
 from typing import Optional
 
+import mlx_whisper
 from elevenlabs.client import ElevenLabs
 from groq import Groq
 
@@ -69,7 +70,7 @@ class GroqTranscriptionService(TranscriptionService):
             if os.path.getsize(audio_file) == 0:
                 logger.error("Audio file is empty")
                 return "[Transcription error: File is empty]"
-                
+
             # Open file and send to API
             with open(audio_file, "rb") as audio:
                 logger.debug("Sending file to Groq API")
@@ -78,10 +79,10 @@ class GroqTranscriptionService(TranscriptionService):
                     model="whisper-large-v3",  # Currently hardcoded, could be configurable
                     file=audio,
                 )
-                
+
             logger.debug("Transcription successful")
             return transcription.text
-                
+
         except Exception as e:
             logger.error(f"Error during transcription: {e}")
             logger.debug(f"Stack trace: {traceback.format_exc()}")
@@ -129,7 +130,7 @@ class ElevenLabsTranscriptionService(TranscriptionService):
             if os.path.getsize(audio_file) == 0:
                 logger.error("Audio file is empty")
                 return "[Transcription error: File is empty]"
-                
+
             # Open file and send to API
             with open(audio_file, "rb") as audio:
                 logger.debug("Sending file to ElevenLabs API")
@@ -139,12 +140,62 @@ class ElevenLabsTranscriptionService(TranscriptionService):
                     tag_audio_events=False,
                     diarize=False,
                 )
-                
+
             logger.debug("ElevenLabs transcription successful")
             return transcription.text
-                
+
         except Exception as e:
             logger.error(f"Error during ElevenLabs transcription: {e}")
+            logger.debug(f"Stack trace: {traceback.format_exc()}")
+            return f"[Transcription error: {str(e)}]"
+
+
+# MLX Whisper transcription service
+class MLXWhisperTranscriptionService(TranscriptionService):
+    """Transcription service using local MLX Whisper model."""
+
+    def __init__(self, model_name: Optional[str] = None):
+        """Initialize the MLX Whisper transcription service.
+
+        Args:
+            model_name: Name of the Whisper model to use. If not provided, it will be read from
+                the MLX_WHISPER_MODEL environment variable or use a default model.
+        """
+        self.model_name = model_name or os.environ.get("MLX_WHISPER_MODEL", "mlx-community/whisper-medium-mlx-q4")
+        logger.debug(f"Initializing MLX Whisper with model: {self.model_name}")
+
+    def transcribe(self, audio_file: str) -> str:
+        """Transcribe an audio file using local MLX Whisper model.
+
+        Args:
+            audio_file: Path to the audio file to transcribe.
+
+        Returns:
+            Transcribed text.
+        """
+        logger.debug(f"Transcribing audio file with MLX Whisper: {audio_file}")
+
+        try:
+            # Simple check if file exists
+            if not os.path.exists(audio_file):
+                logger.error(f"Audio file not found: {audio_file}")
+                return "[Transcription error: File not found]"
+
+            # Simple check if file is empty
+            if os.path.getsize(audio_file) == 0:
+                logger.error("Audio file is empty")
+                return "[Transcription error: File is empty]"
+
+            # Transcribe using MLX Whisper
+            logger.debug(f"Transcribing with MLX Whisper model: {self.model_name}")
+            result = mlx_whisper.transcribe(audio_file, path_or_hf_repo=self.model_name)
+            transcript = result["text"]
+
+            logger.debug("MLX Whisper transcription successful")
+            return transcript
+
+        except Exception as e:
+            logger.error(f"Error during MLX Whisper transcription: {e}")
             logger.debug(f"Stack trace: {traceback.format_exc()}")
             return f"[Transcription error: {str(e)}]"
 
@@ -170,6 +221,9 @@ def get_transcription_service(service_name: str) -> TranscriptionService:
     elif service_name.lower() == "elevenlabs":
         logger.debug("Using ElevenLabs transcription service")
         return ElevenLabsTranscriptionService()
+    elif service_name.lower() == "mlx":
+        logger.debug("Using MLX Whisper transcription service")
+        return MLXWhisperTranscriptionService()
     else:
         logger.error(f"Unknown transcription service: {service_name}")
         raise ValueError(f"Unknown transcription service: {service_name}")
