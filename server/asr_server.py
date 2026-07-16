@@ -71,6 +71,19 @@ def load_ark():
         torch_dtype=torch.float16,
         attn_implementation="sdpa",
     ).to("cuda")
+    model.eval()
+
+    # Ban every special/added token except EOS: without this the model derails
+    # mid-transcript and spams <|assistant|> until max_new_tokens (model card recipe).
+    eos_ids = tokenizer.eos_token_id
+    keep_ids = {eos_ids} if isinstance(eos_ids, int) else set(eos_ids or [])
+    bad_ids = set(tokenizer.all_special_ids) - keep_ids
+    bad_ids.update(
+        token_id
+        for token, token_id in tokenizer.get_added_vocab().items()
+        if token.startswith("<") and token.endswith(">") and token_id not in keep_ids
+    )
+    bad_words_ids = [[token_id] for token_id in sorted(bad_ids)]
 
     def transcribe(path: str) -> str:
         conversation = [
@@ -88,8 +101,20 @@ def load_ark():
             return_tensors="pt",
             sampling_rate=16000,
             audio_padding="longest",
+            text_kwargs={"padding": "longest"},
+            audio_max_length=30 * 16000,
         ).to(model.device)
-        outputs = model.generate(**inputs, max_new_tokens=1024)
+        if "audios" in inputs:
+            inputs["audios"] = inputs["audios"].to(dtype=model.dtype)
+        with torch.inference_mode():
+            outputs = model.generate(
+                **inputs,
+                do_sample=False,
+                max_new_tokens=256,
+                pad_token_id=tokenizer.pad_token_id,
+                eos_token_id=tokenizer.eos_token_id,
+                bad_words_ids=bad_words_ids,
+            )
         generated = outputs[:, inputs["input_ids"].shape[1] :]
         return tokenizer.batch_decode(generated, skip_special_tokens=True)[0].strip()
 
