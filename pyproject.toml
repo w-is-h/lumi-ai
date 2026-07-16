@@ -22,6 +22,7 @@ classifiers = [
 dependencies = [
     "mlx-whisper>=0.4.2",
     "nava>=0.7",
+    "numpy>=2.1.3",
     "pyaudio>=0.2.14",
     "pynput>=1.7.7",
     "pyperclip>=1.9.0",

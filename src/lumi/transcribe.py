@@ -2,9 +2,12 @@
 
 import logging
 import os
+import tempfile
 import traceback
 
 import requests
+
+from lumi import audio as audio_prep
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +33,7 @@ def transcribe(audio_file: str, service: str = "mlx", model: str | None = None) 
         return "[Transcription error: File is empty]"
 
     try:
+        audio_file = _gate_silences_to_temp(audio_file)
         if service == "mlx":
             return _transcribe_mlx(audio_file, model)
         elif service == "remote":
@@ -39,6 +43,29 @@ def transcribe(audio_file: str, service: str = "mlx", model: str | None = None) 
         logger.error(f"Error during {service} transcription: {e}")
         logger.debug(f"Stack trace: {traceback.format_exc()}")
         return f"[Transcription error: {e}]"
+
+
+def _gate_silences_to_temp(audio_file: str) -> str:
+    """Collapse long silences; returns a gated temp copy, or the original on failure.
+
+    Best-effort: a recording that can't be preprocessed (odd format) is
+    transcribed as-is rather than failing.
+    """
+    try:
+        samples, rate = audio_prep.load_wav(audio_file)
+        gated = audio_prep.gate_silences(samples, rate)
+        if len(gated) == len(samples):
+            return audio_file
+        fd, gated_file = tempfile.mkstemp(suffix=".wav", prefix="lumi_gated_")
+        os.close(fd)
+        audio_prep.save_wav(gated_file, gated, rate)
+        logger.debug(
+            f"Silence gating: {len(samples) / rate:.1f}s -> {len(gated) / rate:.1f}s"
+        )
+        return gated_file
+    except Exception as e:
+        logger.warning(f"Silence gating skipped: {e}")
+        return audio_file
 
 
 def _transcribe_mlx(audio_file: str, model: str | None) -> str:
@@ -51,9 +78,37 @@ def _transcribe_mlx(audio_file: str, model: str | None) -> str:
 
 
 def _transcribe_remote(audio_file: str) -> str:
+    """POST to the remote server, splitting long audio into chunks the server's
+    models can take in one request (~30s windows) and stitching the texts."""
     base_url = os.environ.get("LUMI_REMOTE_URL", DEFAULT_REMOTE_URL)
     url = f"{base_url}/transcribe"
-    logger.debug(f"Sending {audio_file} to {url}")
+
+    try:
+        samples, rate = audio_prep.load_wav(audio_file)
+    except Exception as e:
+        # Not a plain mono WAV (e.g. an mp3 passed on the CLI): send as-is,
+        # the server decodes other formats itself.
+        logger.debug(f"Chunking skipped ({e}); sending {audio_file} whole")
+        return _post_chunk(url, audio_file)
+
+    chunks = audio_prep.split_at_silences(samples, rate)
+    logger.debug(f"Sending {audio_file} to {url} in {len(chunks)} chunk(s)")
+    if len(chunks) == 1:
+        return _post_chunk(url, audio_file)
+
+    texts = []
+    for i, chunk in enumerate(chunks):
+        fd, chunk_file = tempfile.mkstemp(suffix=".wav", prefix=f"lumi_chunk{i}_")
+        os.close(fd)
+        try:
+            audio_prep.save_wav(chunk_file, chunk, rate)
+            texts.append(_post_chunk(url, chunk_file).strip())
+        finally:
+            os.unlink(chunk_file)
+    return " ".join(t for t in texts if t)
+
+
+def _post_chunk(url: str, audio_file: str) -> str:
     with open(audio_file, "rb") as audio:
         files = {"file": (os.path.basename(audio_file), audio, "audio/wav")}
         response = requests.post(url, files=files, timeout=300)

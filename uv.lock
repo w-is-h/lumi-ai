@@ -161,6 +161,7 @@ source = { editable = "." }
 dependencies = [
     { name = "mlx-whisper" },
     { name = "nava" },
+    { name = "numpy" },
     { name = "pyaudio" },
     { name = "pynput" },
     { name = "pyperclip" },
@@ -177,6 +178,7 @@ dev = [
 requires-dist = [
     { name = "mlx-whisper", specifier = ">=0.4.2" },
     { name = "nava", specifier = ">=0.7" },
+    { name = "numpy", specifier = ">=2.1.3" },
     { name = "pyaudio", specifier = ">=0.2.14" },
     { name = "pynput", specifier = ">=1.7.7" },
     { name = "pyperclip", specifier = ">=1.9.0" },
