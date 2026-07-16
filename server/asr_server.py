@@ -71,6 +71,10 @@ def load_ark():
     model_id = MODEL_IDS["ark"]
     processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+    # Chunks of different lengths get different audio-placeholder counts, so the
+    # prompts need padding to batch. It must be on the left: right padding makes
+    # generate continue from pad tokens and misaligns the output slice.
+    processor.tokenizer.padding_side = "left"
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
         trust_remote_code=True,
