@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 SERVICES = ("mlx", "remote")
 
 DEFAULT_MLX_MODEL = "mlx-community/whisper-large-v3-turbo"
-DEFAULT_REMOTE_URL = "http://localhost:8010"
+DEFAULT_REMOTE_URL = "http://nel:8010"
 
 
 def transcribe(audio_file: str, service: str = "mlx", model: str | None = None) -> str:
@@ -79,9 +79,9 @@ def _transcribe_mlx(audio_file: str, model: str | None) -> str:
 
 def _transcribe_remote(audio_file: str) -> str:
     """POST to the remote server, splitting long audio into chunks the server's
-    models can take in one request (~30s windows) and stitching the texts."""
+    models can take in one forward pass (~30s windows) and sending them all in
+    a single batch request."""
     base_url = os.environ.get("LUMI_REMOTE_URL", DEFAULT_REMOTE_URL)
-    url = f"{base_url}/transcribe"
 
     try:
         samples, rate = audio_prep.load_wav(audio_file)
@@ -89,28 +89,37 @@ def _transcribe_remote(audio_file: str) -> str:
         # Not a plain mono WAV (e.g. an mp3 passed on the CLI): send as-is,
         # the server decodes other formats itself.
         logger.debug(f"Chunking skipped ({e}); sending {audio_file} whole")
-        return _post_chunk(url, audio_file)
+        return _post_single(base_url, audio_file)
 
     chunks = audio_prep.split_at_silences(samples, rate)
-    logger.debug(f"Sending {audio_file} to {url} in {len(chunks)} chunk(s)")
+    logger.debug(f"Sending {audio_file} to {base_url} in {len(chunks)} chunk(s)")
     if len(chunks) == 1:
-        return _post_chunk(url, audio_file)
+        return _post_single(base_url, audio_file)
 
-    texts = []
-    for i, chunk in enumerate(chunks):
-        fd, chunk_file = tempfile.mkstemp(suffix=".wav", prefix=f"lumi_chunk{i}_")
-        os.close(fd)
-        try:
+    chunk_files = []
+    try:
+        for i, chunk in enumerate(chunks):
+            fd, chunk_file = tempfile.mkstemp(suffix=".wav", prefix=f"lumi_chunk{i}_")
+            os.close(fd)
             audio_prep.save_wav(chunk_file, chunk, rate)
-            texts.append(_post_chunk(url, chunk_file).strip())
-        finally:
-            os.unlink(chunk_file)
-    return " ".join(t for t in texts if t)
+            chunk_files.append(chunk_file)
+        files = [
+            ("files", (os.path.basename(p), open(p, "rb").read(), "audio/wav"))
+            for p in chunk_files
+        ]
+    finally:
+        for p in chunk_files:
+            os.unlink(p)
+
+    response = requests.post(f"{base_url}/transcribe_batch", files=files, timeout=300)
+    response.raise_for_status()
+    texts = response.json().get("texts", [])
+    return " ".join(t.strip() for t in texts if t.strip())
 
 
-def _post_chunk(url: str, audio_file: str) -> str:
+def _post_single(base_url: str, audio_file: str) -> str:
     with open(audio_file, "rb") as audio:
         files = {"file": (os.path.basename(audio_file), audio, "audio/wav")}
-        response = requests.post(url, files=files, timeout=300)
+        response = requests.post(f"{base_url}/transcribe", files=files, timeout=300)
     response.raise_for_status()
     return response.json().get("text", "")

@@ -4,9 +4,11 @@ Pick the backend with the ASR_MODEL env var (parakeet | qwen | ark) and install
 the matching extra first — see README.md. The model loads once at startup.
 
 API (matches what the lumi client expects):
-    GET  /            health check
-    GET  /health      health + model info
-    POST /transcribe  multipart WAV in "file" -> {"text": ...}
+    GET  /                  health check
+    GET  /health            health + model info
+    POST /transcribe        multipart WAV in "file" -> {"text": ...}
+    POST /transcribe_batch  multipart WAVs in "files" -> {"texts": [...]}, one
+                            batched forward pass where the backend supports it
 """
 
 import logging
@@ -28,15 +30,18 @@ MODEL_IDS = {
 }
 
 
+# Each loader returns transcribe_batch(paths) -> list of texts, same order.
+
+
 def load_parakeet():
     import nemo.collections.asr as nemo_asr
 
     model = nemo_asr.models.ASRModel.from_pretrained(model_name=MODEL_IDS["parakeet"])
 
-    def transcribe(path: str) -> str:
-        return model.transcribe([path])[0].text
+    def transcribe_batch(paths: list[str]) -> list[str]:
+        return [result.text for result in model.transcribe(paths)]
 
-    return transcribe
+    return transcribe_batch
 
 
 def load_qwen():
@@ -51,11 +56,12 @@ def load_qwen():
         max_new_tokens=1024,
     )
 
-    def transcribe(path: str) -> str:
-        results = model.transcribe(audio=path, language=None)
-        return results[0].text
+    # qwen_asr batches internally; one call per file keeps us off its unverified
+    # list API. Sequential, so no batch speedup on this backend.
+    def transcribe_batch(paths: list[str]) -> list[str]:
+        return [model.transcribe(audio=path, language=None)[0].text for path in paths]
 
-    return transcribe
+    return transcribe_batch
 
 
 def load_ark():
@@ -85,18 +91,21 @@ def load_ark():
     )
     bad_words_ids = [[token_id] for token_id in sorted(bad_ids)]
 
-    def transcribe(path: str) -> str:
-        conversation = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "audio", "path": path},
-                    {"type": "text", "text": "Please transcribe this audio."},
-                ],
-            }
+    def transcribe_batch(paths: list[str]) -> list[str]:
+        conversations = [
+            [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "audio", "path": path},
+                        {"type": "text", "text": "Please transcribe this audio."},
+                    ],
+                }
+            ]
+            for path in paths
         ]
         inputs = processor.apply_chat_template(
-            conversation,
+            conversations,
             add_generation_prompt=True,
             return_tensors="pt",
             sampling_rate=16000,
@@ -116,9 +125,9 @@ def load_ark():
                 bad_words_ids=bad_words_ids,
             )
         generated = outputs[:, inputs["input_ids"].shape[1] :]
-        return tokenizer.batch_decode(generated, skip_special_tokens=True)[0].strip()
+        return [t.strip() for t in tokenizer.batch_decode(generated, skip_special_tokens=True)]
 
-    return transcribe
+    return transcribe_batch
 
 
 LOADERS = {"parakeet": load_parakeet, "qwen": load_qwen, "ark": load_ark}
@@ -128,7 +137,7 @@ if BACKEND not in LOADERS:
 
 logger.info(f"Loading {BACKEND} backend ({MODEL_IDS[BACKEND]})...")
 _start = time.time()
-transcribe_fn = LOADERS[BACKEND]()
+transcribe_batch_fn = LOADERS[BACKEND]()
 logger.info(f"Model loaded in {time.time() - _start:.1f}s")
 
 app = FastAPI(title="Lumi ASR server", version="0.1.0")
@@ -144,27 +153,45 @@ def health():
     return {"status": "healthy", "model_loaded": True, "model_name": MODEL_IDS[BACKEND]}
 
 
-@app.post("/transcribe")
-def transcribe_audio(file: UploadFile):
+def _save_upload(file: UploadFile) -> str:
     suffix = os.path.splitext(file.filename or "audio.wav")[1] or ".wav"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp.write(file.file.read())
-        tmp_path = tmp.name
+        return tmp.name
 
+
+def _transcribe_uploads(files: list[UploadFile]) -> tuple[list[str], float]:
+    paths = [_save_upload(f) for f in files]
     start = time.time()
     try:
-        text = transcribe_fn(tmp_path)
+        texts = transcribe_batch_fn(paths)
     except Exception as e:
         logger.exception("Transcription failed")
         raise HTTPException(status_code=500, detail=f"Transcription failed: {e}") from e
     finally:
-        os.unlink(tmp_path)
+        for path in paths:
+            os.unlink(path)
+    return texts, time.time() - start
 
-    duration = time.time() - start
-    logger.info(f"Transcribed {file.filename} in {duration:.2f}s: {text[:80]}")
+
+@app.post("/transcribe")
+def transcribe_audio(file: UploadFile):
+    texts, duration = _transcribe_uploads([file])
+    logger.info(f"Transcribed {file.filename} in {duration:.2f}s: {texts[0][:80]}")
     return {
-        "text": text,
+        "text": texts[0],
         "duration": duration,
         "model_name": MODEL_IDS[BACKEND],
         "file_name": file.filename,
+    }
+
+
+@app.post("/transcribe_batch")
+def transcribe_audio_batch(files: list[UploadFile]):
+    texts, duration = _transcribe_uploads(files)
+    logger.info(f"Transcribed batch of {len(files)} in {duration:.2f}s")
+    return {
+        "texts": texts,
+        "duration": duration,
+        "model_name": MODEL_IDS[BACKEND],
     }
