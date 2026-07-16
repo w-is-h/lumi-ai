@@ -1,0 +1,38 @@
+[project]
+name = "lumi-asr-server"
+version = "0.1.0"
+description = "Self-hosted ASR server for lumi's remote backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.139.1",
+    "python-multipart>=0.0.32",
+    "uvicorn>=0.51.0",
+]
+
+[project.optional-dependencies]
+parakeet = [
+    "nemo-toolkit[asr]>=2.7.3",
+]
+qwen = [
+    "qwen-asr>=0.0.6",
+]
+ark = [
+    "accelerate>=1.12.0",
+    "librosa>=0.11.0",
+    "torch>=2.13.0",
+    "transformers>=4.57.6",
+]
+
+# The three model backends conflict (NeMo, qwen-asr, and recent transformers
+# pin incompatible dependency sets), so exactly one extra is installed at a time:
+#   uv sync --extra parakeet | --extra qwen | --extra ark
+
+[tool.uv]
+environments = ["sys_platform == 'linux'"]
+conflicts = [
+    [
+        { extra = "parakeet" },
+        { extra = "qwen" },
+        { extra = "ark" },
+    ],
+]
