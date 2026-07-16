@@ -1,119 +1,55 @@
 # Lumi
 
-Lumi is a speech-to-text utility that lets you instantly transcribe your speech with a simple keyboard shortcut.
+Speech-to-text for macOS. Double-tap the Option key, speak, tap once to stop — the transcription is pasted where your cursor is and copied to the clipboard.
 
 This was `vibe-coded` using claude-code, R1 and o3-mini.
 
 ## Quick Start
 
 ```bash
-# Install requirements on MacOS
-brew install portaudio
-
-# Install Lumi
-pip install lumi-ai # or uv pip install lumi-ai
-
-# Start Lumi
+brew install portaudio   # required by pyaudio
+pip install lumi-ai      # or: uv pip install lumi-ai
 lumi
 ```
 
 Then:
-1. **Double-tap Option key** → Start recording
-2. Speak clearly
-3. **Single-tap Option key** → Stop recording
-4. Your transcription appears instantly where your cursor is! As well as in your clipboard, so you can paste it.
+1. **Double-tap Option** → start recording
+2. Speak
+3. **Single-tap Option** → stop recording; the transcription is pasted and in your clipboard
+4. **Ctrl+C** in the terminal exits
 
-That's it! No complicated setup or configuration needed.
+NOTE: on first run the MLX backend downloads its model, which takes a while. `Speech-to-text service started.` means it's ready.
 
-NOTE! First time you run it, if using MLX it will need to download models, so might take a bit, when you see `Speech-to-text service started.` it means all is ready.
+## Backends
 
-## Features
+- `mlx` (default): local Whisper via [mlx-whisper](https://github.com/ml-explore/mlx-examples). Apple Silicon only, no API key, nothing leaves the machine.
+- `remote`: a self-hosted ASR server. Lumi sends the recording as multipart WAV to `POST {LUMI_REMOTE_URL}/transcribe` and reads `text` from the JSON response. Set the server address with the `LUMI_REMOTE_URL` environment variable. The server itself lives in [`server/`](server/) — one FastAPI app with three switchable models (parakeet / qwen / ark).
 
-- Easy activation with double-tap Option key hotkey
-- Single-tap to stop recording (more intuitive)
-- Automatically transcribes speech when recording stops using Groq, ElevenLabs APIs, or local MLX Whisper
-- Copies transcription to clipboard and automatically pastes it
-- Plays lightweight notification sounds when recording starts/stops
-- Command-line interface with configuration options
-- Primarily tested on macOS (may work on other platforms but not fully tested)
+## Usage
+
+```bash
+lumi                          # hotkey mode, local MLX Whisper
+lumi --service remote         # hotkey mode, self-hosted server
+lumi --model mlx-community/whisper-large-v3-turbo   # pick the MLX model
+lumi recording.wav            # transcribe a file and exit
+lumi --no-auto-paste          # copy to clipboard only, don't paste
+lumi --debug                  # verbose logging
+```
+
+Environment variables: `MLX_WHISPER_MODEL` (MLX model name), `LUMI_REMOTE_URL` (remote server base URL).
 
 ## Requirements
 
-- Python 3.12+
-- PortAudio library (`brew install portaudio` on macOS)
-- For local transcription (default):
-  - MLX (Apple Silicon Macs only) - no API key needed
-- For cloud transcription (optional):
-  - Groq API key or
-  - ElevenLabs API key
-
-## Installation
-
-### From PyPI
-```bash
-pip install lumi-ai
-```
-Or with uv:
-```bash
-uv pip install lumi-ai
-```
-
-After installation, you can use the `lumi` command directly from your terminal.
-
-### From Source
-1. Clone this repository
-2. Run with `uv run -m src.lumi.s2t` # This will install what is needed
-
-## Advanced Configuration
-
-### Command-line Options
-
-```bash
-# Choose transcription service
-lumi --service mlx            # Use local MLX Whisper (default, no API key needed)
-lumi --service groq           # Use Groq API
-lumi --service elevenlabs     # Use ElevenLabs API
-
-# API keys, if for whatever reason you hate env vars
-lumi --api-key YOUR_GROQ_API_KEY
-lumi --service elevenlabs --elevenlabs-api-key YOUR_ELEVENLABS_API_KEY
-
-# Specify models
-lumi --service groq --model whisper-large-v3-turbo
-lumi --service elevenlabs --model scribe_v1
-lumi --service mlx --model mlx-community/whisper-large-v3-turbo
-
-# Other options
-lumi --no-auto-paste          # Disable auto-pasting
-lumi --debug                  # Enable debug logging
-```
-
-### Keyboard Controls
-
-- **Double-tap Option**: Start recording
-- **Single-tap Option**: Stop recording
-- **Ctrl+C**: Exit application
-
-## Advanced Features
-
-- Automatic fallback to alternative audio input devices
-- Temporary recordings stored in system temp directory
-- Sound notifications for recording start/stop
-- Auto-paste functionality (can be disabled with --no-auto-paste)
-- Platform-aware keyboard shortcuts (Cmd+V on macOS, Ctrl+V elsewhere)
-- Debug mode for troubleshooting with detailed logging
-
-## Platform Support
-
-- **macOS**: Fully supported and tested
-- **Linux/Windows**: Basic functionality may work but not extensively tested (claude is optimisic, there is no way it will work on windows)
-- **MLX Whisper**: Only works on Apple Silicon Macs
+- macOS on Apple Silicon (for the `mlx` backend), Python 3.12+
+- PortAudio (`brew install portaudio`)
+- Recordings are written to the system temp directory and left for the OS to clean up
 
 ## Development
 
-- Install dependencies: `uv sync`
-- Add dependency: `uv add package_name`
-- Lint: `ruff check .`
-- Format: `ruff format .`
-- Test: `pytest`
-- Test specific file: `pytest path/to/test_file.py`
+```bash
+uv sync           # install dependencies
+uv run lumi       # run from source
+ruff check .      # lint
+ruff format .     # format
+uv run pytest     # tests
+```

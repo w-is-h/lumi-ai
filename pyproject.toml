@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "lumi-ai"
-version = "0.1.2"
+version = "0.2.0"
 description = "Speech-to-text utility with hotkey activation"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -16,8 +20,6 @@ classifiers = [
     "Intended Audience :: End Users/Desktop",
 ]
 dependencies = [
-    "elevenlabs>=1.52.0",
-    "groq>=0.18.0",
     "mlx-whisper>=0.4.2",
     "nava>=0.7",
     "pyaudio>=0.2.14",
@@ -27,7 +29,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["lumi", "lumi.cli"]
+packages = ["lumi"]
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
@@ -40,7 +42,7 @@ dev = [
 ]
 
 [project.scripts]
-lumi = "lumi.cli.s2t_cli:main"
+lumi = "lumi.s2t:main"
 
 [tool.ruff]
 line-length = 100

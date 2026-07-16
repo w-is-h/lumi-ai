@@ -1,34 +1,37 @@
-import os
-
-# Import the module for testing
-import sys
 from unittest.mock import patch
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 from lumi import s2t
 
 
 def test_get_default_input_device():
-    """Test that mock default input device is returned correctly."""
+    """The system default input device is returned when no preferred mic exists."""
     with patch("pyaudio.PyAudio") as mock_pyaudio:
-        # Setup the mock
         mock_instance = mock_pyaudio.return_value
-        mock_instance.get_default_input_device_info.return_value = {"index": 1}
+        mock_instance.get_device_count.return_value = 0
+        mock_instance.get_default_input_device_info.return_value = {"index": 1, "name": "Mock Mic"}
 
-        # Initialize audio
         s2t.audio = mock_instance
-
-        # Call the function
-        result = s2t.get_default_input_device()
-
-        # Check the result
-        assert result == 1
+        assert s2t.get_default_input_device() == 1
         mock_instance.get_default_input_device_info.assert_called_once()
 
 
-def test_transcribe_audio():
-    """Test that transcribe_audio returns text."""
-    # For now, this is just testing the placeholder implementation
-    result = s2t.transcribe_audio("dummy_file.wav")
-    assert isinstance(result, str)
-    assert len(result) > 0
+def test_double_tap_starts_recording():
+    """Two Option presses within DOUBLE_TAP_TIME start recording."""
+    s2t.recording = False
+    s2t.last_option_press_time = 0
+    with patch.object(s2t, "start_recording") as mock_start:
+        s2t.on_press(s2t.keyboard.Key.alt)
+        s2t.on_press(s2t.keyboard.Key.alt)
+    mock_start.assert_called_once()
+
+
+def test_single_tap_stops_recording():
+    """A single Option press while recording stops it."""
+    s2t.recording = True
+    s2t.last_option_press_time = 0
+    try:
+        with patch.object(s2t, "stop_recording") as mock_stop:
+            s2t.on_press(s2t.keyboard.Key.alt)
+        mock_stop.assert_called_once()
+    finally:
+        s2t.recording = False

@@ -1,3 +1,6 @@
+"""Lumi speech-to-text: double-tap the Option key to record, transcribe, and paste."""
+
+import argparse
 import logging
 import os
 import platform
@@ -12,9 +15,8 @@ from nava import play
 from pynput import keyboard
 from pynput.keyboard import Controller, Key
 
-from lumi.transcribe import get_transcription_service
+from lumi.transcribe import SERVICES, transcribe
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -25,20 +27,18 @@ logger = logging.getLogger(__name__)
 # Configuration
 DOUBLE_TAP_TIME = 0.3  # Maximum time between taps to count as double-tap
 TEMP_DIR = os.path.join(tempfile.gettempdir(), "speech_to_text")
-START_SOUND_FILE = "ding.mp3"  # Located in the same folder as the script
-STOP_SOUND_FILE = "dong.mp3"  # Located in the same folder as the script
-TRANSCRIPTION_SERVICE = "mlx"  # Transcription service to use (options: "groq", "elevenlabs", "mlx")
+START_SOUND_FILE = "ding.mp3"  # Located in the same folder as this module
+STOP_SOUND_FILE = "dong.mp3"
+PREFERRED_MIC = "wireless microphone rx"  # Picked over the system default when present
 
-# State variables
-SINGLE_TAP_STOPS = True  # Allow single tap to stop recording
-AUTO_PASTE = True  # Automatically paste the transcription
+# Runtime settings (overridden by CLI flags)
+SERVICE = "mlx"
+MODEL = None
+AUTO_PASTE = True
 
-# Initialize keyboard controller for pasting
 keyboard_controller = Controller()
 
-# Create temp directory if it doesn't exist
-if not os.path.exists(TEMP_DIR):
-    os.makedirs(TEMP_DIR)
+os.makedirs(TEMP_DIR, exist_ok=True)
 
 # Audio recording parameters
 FORMAT = pyaudio.paInt16
@@ -51,8 +51,6 @@ recording = False
 last_option_press_time = 0
 frames = []
 stream = None
-
-# Initialize PyAudio
 audio = None
 
 
@@ -66,31 +64,34 @@ def setup_audio():
 
 
 def get_default_input_device():
-    """Get the default input device, with fallback if not available."""
+    """Get the input device, preferring PREFERRED_MIC if available."""
+    for i in range(audio.get_device_count()):
+        info = audio.get_device_info_by_index(i)
+        if info["maxInputChannels"] > 0 and PREFERRED_MIC in info["name"].lower():
+            logger.info(f"Found preferred microphone: {info['name']}")
+            return i
+
     try:
         info = audio.get_default_input_device_info()
+        logger.info(f"Using system default input device: {info['name']}")
         return info["index"]
     except Exception as e:
         logger.error(f"Error getting default device: {e}")
         logger.debug(f"Stack trace: {traceback.format_exc()}")
-        # Fallback: find first available input device
+
+        # Last resort: first available input device
         for i in range(audio.get_device_count()):
             info = audio.get_device_info_by_index(i)
             if info["maxInputChannels"] > 0:
                 logger.info(f"Using fallback input device: {info['name']}")
                 return i
-        err = Exception("No input devices found")
-        raise err from None
+
+        raise Exception("No input devices found") from None
 
 
 def play_sound(is_start=True):
-    """Play the notification sound using nava.
-
-    Args:
-        is_start: If True, play the start sound, otherwise play the stop sound.
-    """
+    """Play the start or stop notification sound."""
     try:
-        # Get the directory of the current script
         script_dir = os.path.dirname(os.path.abspath(__file__))
         sound_file = START_SOUND_FILE if is_start else STOP_SOUND_FILE
         sound_path = os.path.join(script_dir, sound_file)
@@ -99,7 +100,6 @@ def play_sound(is_start=True):
             logger.warning(f"Sound file not found: {sound_path}")
             return
 
-        # Play the sound asynchronously so it doesn't block
         play(sound_path, async_mode=True, loop=False)
     except Exception as e:
         logger.error(f"Error playing sound: {e}")
@@ -110,33 +110,27 @@ def start_recording():
     """Start recording audio from the microphone."""
     global recording, stream, frames, audio
 
-    # Don't start if already recording
     if recording:
         logger.info("Already recording, ignoring start request")
         return
 
     try:
-        # Always reinitialize audio to ensure we have the latest system state
+        # Always reinitialize audio to pick up device changes
         setup_audio()
 
-        # Play start sound
         play_sound(is_start=True)
         time.sleep(0.5)  # Needed, otherwise the start sound does not play
 
-        # Reset frames
         frames = []
 
-        # Get current default input device
         device_index = get_default_input_device()
         logger.info(f"Using input device index: {device_index}")
 
-        # Open stream with callback function to collect frames
         def callback(in_data, frame_count, time_info, status):
             if recording:
                 frames.append(in_data)
             return (None, pyaudio.paContinue)
 
-        # Open stream with callback
         stream = audio.open(
             format=FORMAT,
             channels=CHANNELS,
@@ -156,7 +150,6 @@ def start_recording():
         logger.debug(f"Stack trace: {traceback.format_exc()}")
         recording = False
 
-        # Clean up resources if there was an error
         if stream:
             try:
                 stream.close()
@@ -164,157 +157,93 @@ def start_recording():
                 pass
             stream = None
 
-        # Try to reconnect audio if there was an error
         setup_audio()
 
 
 def stop_recording():
-    """Stop recording and process the audio.
+    """Stop recording, transcribe the audio, and paste the result.
 
-    Note: Temporary audio files are stored in the system temp directory.
-    These files are not automatically deleted to allow for
-    troubleshooting, but the OS will typically clean them up eventually.
+    Recordings are kept in the system temp directory for troubleshooting;
+    the OS cleans them up eventually.
     """
     global recording, stream, frames
 
     if not recording:
         return
 
-    # Mark as not recording first
     recording = False
-
-    # Make a copy of frames
     local_frames = list(frames)
     frames = []
 
     try:
-        # Stop and close the stream
         if stream:
             stream.stop_stream()
             stream.close()
             stream = None
 
-        # Play stop sound
         play_sound(is_start=False)
-
         logger.info("Recording stopped.")
 
-        # Only process if we have frames
-        if local_frames:
-            # Save audio file
-            timestamp = time.strftime("%Y%m%d-%H%M%S")
-            temp_file = os.path.join(TEMP_DIR, f"recording_{timestamp}.wav")
+        if not local_frames:
+            return
 
-            try:
-                # Write file
-                with wave.open(temp_file, "wb") as wf:
-                    wf.setnchannels(CHANNELS)
-                    wf.setsampwidth(audio.get_sample_size(FORMAT))
-                    wf.setframerate(RATE)
-                    wf.writeframes(b"".join(local_frames))
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        temp_file = os.path.join(TEMP_DIR, f"recording_{timestamp}.wav")
 
-                logger.info(f"Recording saved to {temp_file}")
+        with wave.open(temp_file, "wb") as wf:
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(audio.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b"".join(local_frames))
 
-                # Process the audio file
-                transcript = transcribe_audio(temp_file)
-                if transcript:
-                    pyperclip.copy(transcript)
-                    logger.info(f"Transcript copied to clipboard: {transcript}")
+        logger.info(f"Recording saved to {temp_file}")
 
-                    # Auto-paste if enabled
-                    if AUTO_PASTE:
-                        auto_paste()
-            except Exception as e:
-                logger.error(f"Error processing audio file: {e}")
-                logger.debug(f"Stack trace: {traceback.format_exc()}")
+        transcript = transcribe(temp_file, service=SERVICE, model=MODEL)
+        if transcript:
+            pyperclip.copy(transcript)
+            logger.info(f"Transcript copied to clipboard: {transcript}")
+            if AUTO_PASTE:
+                auto_paste()
 
     except Exception as e:
         logger.error(f"Error stopping recording: {e}")
         logger.debug(f"Stack trace: {traceback.format_exc()}")
 
     finally:
-        # Make sure recording is set to False
         recording = False
 
 
-def transcribe_audio(audio_file):
-    """Send audio to speech-to-text API and return transcript."""
-    logger.info(f"Sending {audio_file} to {TRANSCRIPTION_SERVICE} transcription service...")
-
-    try:
-        # Get model name from environment if set
-        model_name = None
-        if TRANSCRIPTION_SERVICE.lower() == "groq":
-            model_name = os.environ.get("GROQ_MODEL")
-        elif TRANSCRIPTION_SERVICE.lower() == "elevenlabs":
-            model_name = os.environ.get("ELEVENLABS_MODEL")
-        elif TRANSCRIPTION_SERVICE.lower() == "mlx":
-            model_name = os.environ.get("MLX_WHISPER_MODEL")
-
-        # Get the appropriate transcription service with model name if available
-        transcription_service = get_transcription_service(TRANSCRIPTION_SERVICE, model_name)
-
-        # Transcribe the audio file
-        transcript = transcription_service.transcribe(audio_file)
-
-        return transcript
-    except Exception as e:
-        logger.error(f"Error transcribing audio: {e}")
-        logger.debug(f"Stack trace: {traceback.format_exc()}")
-        return f"[Transcription error: {str(e)}]"
-
-
 def on_press(key):
-    """Handle key press events to detect double-tap of option key."""
+    """Detect double-tap of the Option key to start, single tap to stop."""
     global last_option_press_time, recording
 
-    # Check if option key was pressed
-    if key == keyboard.Key.alt or key == keyboard.Key.alt_l or key == keyboard.Key.alt_r:
+    if key in (keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r):
         current_time = time.time()
         time_diff = current_time - last_option_press_time
 
-        # Stop recording with a single tap if enabled and already recording
-        if SINGLE_TAP_STOPS and recording:
+        if recording:
             stop_recording()
-            # Reset timer
             last_option_press_time = 0
             return
 
-        # Check if this is a double-tap for starting recording
-        if 0 < time_diff < DOUBLE_TAP_TIME and not recording:
-            # Start recording
+        if 0 < time_diff < DOUBLE_TAP_TIME:
             start_recording()
-            # Reset timer to prevent triple-tap from toggling again
+            # Reset timer to prevent a triple-tap from toggling again
             last_option_press_time = 0
         else:
-            # Update the last press time
             last_option_press_time = current_time
 
 
-def on_release(key):
-    """Handle key release events."""
-    pass  # We don't need special handling for key releases
-
-
 def auto_paste():
-    """Automatically paste the current clipboard content using keyboard shortcut."""
+    """Paste the clipboard content with the platform's paste shortcut."""
     try:
-        # Small delay to ensure the clipboard is ready
-        time.sleep(0.5)
+        time.sleep(0.5)  # Ensure the clipboard is ready
 
-        # Determine the correct paste shortcut based on OS
-        if platform.system() == "Darwin":  # macOS
-            logger.debug("Using macOS paste shortcut (Command+V)")
-            keyboard_controller.press(Key.cmd)
-            keyboard_controller.press("v")
-            keyboard_controller.release("v")
-            keyboard_controller.release(Key.cmd)
-        else:  # Windows/Linux
-            logger.debug("Using Windows/Linux paste shortcut (Control+V)")
-            keyboard_controller.press(Key.ctrl)
-            keyboard_controller.press("v")
-            keyboard_controller.release("v")
-            keyboard_controller.release(Key.ctrl)
+        modifier = Key.cmd if platform.system() == "Darwin" else Key.ctrl
+        keyboard_controller.press(modifier)
+        keyboard_controller.press("v")
+        keyboard_controller.release("v")
+        keyboard_controller.release(modifier)
 
         logger.info("Auto-paste completed")
     except Exception as e:
@@ -322,8 +251,79 @@ def auto_paste():
         logger.debug(f"Stack trace: {traceback.format_exc()}")
 
 
-# For backward compatibility
-if __name__ == "__main__":
-    from lumi.cli.s2t_cli import main
+def main():
+    """Entry point for the lumi command."""
+    global SERVICE, MODEL, AUTO_PASTE, audio
 
+    parser = argparse.ArgumentParser(description="Lumi Speech-to-Text")
+    parser.add_argument("file", nargs="?", help="Audio file to transcribe (optional)")
+    parser.add_argument(
+        "--service",
+        choices=SERVICES,
+        default="mlx",
+        help="Transcription backend: mlx (local Whisper) or remote (self-hosted server)",
+    )
+    parser.add_argument("--model", help="MLX Whisper model name")
+    parser.add_argument(
+        "--no-auto-paste", action="store_true", help="Disable automatic pasting of transcription"
+    )
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+    args = parser.parse_args()
+
+    SERVICE = args.service
+    MODEL = args.model
+    AUTO_PASTE = not args.no_auto_paste
+
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug("Debug logging enabled")
+
+    # One-off file transcription mode
+    if args.file:
+        if not os.path.exists(args.file):
+            logger.error(f"File not found: {args.file}")
+            return
+        transcript = transcribe(args.file, service=SERVICE, model=MODEL)
+        print(transcript)
+        pyperclip.copy(transcript)
+        logger.info("Transcript copied to clipboard")
+        return
+
+    keyboard_listener = None
+    try:
+        setup_audio()
+
+        keyboard_listener = keyboard.Listener(on_press=on_press)
+        keyboard_listener.start()
+
+        logger.info("Speech-to-text service started.")
+        logger.info(f"Using {SERVICE} transcription service.")
+        logger.info("Double-tap the Option key to START recording.")
+        logger.info("Single-tap the Option key to STOP recording.")
+        if AUTO_PASTE:
+            logger.info("Auto-paste is enabled - transcriptions will be automatically pasted.")
+        logger.info("Press Ctrl+C in this terminal to exit.")
+
+        while True:
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        logger.info("Exiting speech-to-text service...")
+
+    finally:
+        if keyboard_listener is not None and keyboard_listener.is_alive():
+            keyboard_listener.stop()
+
+        if recording:
+            stop_recording()
+
+        if audio is not None:
+            try:
+                audio.terminate()
+            except Exception as e:
+                logger.error(f"Error terminating audio: {e}")
+            audio = None
+
+
+if __name__ == "__main__":
     main()

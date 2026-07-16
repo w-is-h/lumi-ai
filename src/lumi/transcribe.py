@@ -1,244 +1,61 @@
-"""
-Transcription service implementations for Lumi.
-"""
+"""Transcription backends: local MLX Whisper and a self-hosted remote ASR server."""
 
 import logging
 import os
 import traceback
-from typing import Optional
 
-import mlx_whisper
-from elevenlabs.client import ElevenLabs
-from groq import Groq
+import requests
 
-# Get logger
 logger = logging.getLogger(__name__)
 
+SERVICES = ("mlx", "remote")
 
-class TranscriptionService:
-    """Base class for transcription services."""
-
-    def transcribe(self, audio_file: str) -> str:
-        """Transcribe an audio file to text.
-
-        Args:
-            audio_file: Path to the audio file to transcribe.
-
-        Returns:
-            Transcribed text.
-        """
-        raise NotImplementedError("Subclasses must implement this method")
+DEFAULT_MLX_MODEL = "mlx-community/whisper-large-v3-turbo"
+DEFAULT_REMOTE_URL = "http://localhost:8010"
 
 
-class GroqTranscriptionService(TranscriptionService):
-    """Transcription service using Groq API."""
-
-    def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
-        """Initialize the Groq transcription service.
-
-        Args:
-            api_key: Groq API key. If not provided, it will be read from
-                the GROQ_API_KEY environment variable.
-            model_name: Name of the Whisper model to use. If not provided, it will be read from
-                the GROQ_MODEL environment variable or use a default model.
-        """
-        self.api_key = api_key or os.environ.get("GROQ_API_KEY")
-        if not self.api_key:
-            logger.error("Groq API key not provided")
-            raise ValueError(
-                "Groq API key not provided. Please set the GROQ_API_KEY environment variable."
-            )
-
-        # Set model name with priority: parameter > environment variable > default
-        self.model_name = model_name or os.environ.get("GROQ_MODEL", "whisper-large-v3-turbo")
-        logger.debug(f"Initializing Groq client with model: {self.model_name}")
-        self.client = Groq(api_key=self.api_key)
-
-    def transcribe(self, audio_file: str) -> str:
-        """Transcribe an audio file using Groq's Whisper API.
-
-        Args:
-            audio_file: Path to the audio file to transcribe.
-
-        Returns:
-            Transcribed text.
-        """
-        logger.debug(f"Transcribing audio file: {audio_file}")
-
-        try:
-            # Simple check if file exists
-            if not os.path.exists(audio_file):
-                logger.error(f"Audio file not found: {audio_file}")
-                return "[Transcription error: File not found]"
-
-            # Simple check if file is empty
-            if os.path.getsize(audio_file) == 0:
-                logger.error("Audio file is empty")
-                return "[Transcription error: File is empty]"
-
-            # Open file and send to API
-            with open(audio_file, "rb") as audio:
-                logger.debug(f"Sending file to Groq API with model: {self.model_name}")
-                transcription = self.client.audio.transcriptions.create(
-                    model=self.model_name,
-                    file=audio,
-                )
-
-            logger.debug("Transcription successful")
-            return transcription.text
-
-        except Exception as e:
-            logger.error(f"Error during transcription: {e}")
-            logger.debug(f"Stack trace: {traceback.format_exc()}")
-            return f"[Transcription error: {str(e)}]"
-
-
-class ElevenLabsTranscriptionService(TranscriptionService):
-    """Transcription service using ElevenLabs API."""
-
-    def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
-        """Initialize the ElevenLabs transcription service.
-
-        Args:
-            api_key: ElevenLabs API key. If not provided, it will be read from
-                the ELEVENLABS_API_KEY environment variable.
-            model_name: Name of the ElevenLabs model to use. If not provided, it will be read from
-                the ELEVENLABS_MODEL environment variable or use a default model.
-        """
-        self.api_key = api_key or os.environ.get("ELEVENLABS_API_KEY")
-        if not self.api_key:
-            logger.error("ElevenLabs API key not provided")
-            raise ValueError(
-                "ElevenLabs API key not provided. "
-                "Please set the ELEVENLABS_API_KEY environment variable."
-            )
-
-        # Set model name with priority: parameter > environment variable > default
-        self.model_name = model_name or os.environ.get("ELEVENLABS_MODEL", "scribe_v1")
-        logger.debug(f"Initializing ElevenLabs client with model: {self.model_name}")
-        self.client = ElevenLabs(api_key=self.api_key)
-
-    def transcribe(self, audio_file: str) -> str:
-        """Transcribe an audio file using ElevenLabs API.
-
-        Args:
-            audio_file: Path to the audio file to transcribe.
-
-        Returns:
-            Transcribed text.
-        """
-        logger.debug(f"Transcribing audio file with ElevenLabs: {audio_file}")
-
-        try:
-            # Simple check if file exists
-            if not os.path.exists(audio_file):
-                logger.error(f"Audio file not found: {audio_file}")
-                return "[Transcription error: File not found]"
-
-            # Simple check if file is empty
-            if os.path.getsize(audio_file) == 0:
-                logger.error("Audio file is empty")
-                return "[Transcription error: File is empty]"
-
-            # Open file and send to API
-            with open(audio_file, "rb") as audio:
-                logger.debug("Sending file to ElevenLabs API")
-                transcription = self.client.speech_to_text.convert(
-                    file=audio,
-                    model_id=self.model_name,
-                    tag_audio_events=False,
-                    diarize=False,
-                )
-
-            logger.debug("ElevenLabs transcription successful")
-            return transcription.text
-
-        except Exception as e:
-            logger.error(f"Error during ElevenLabs transcription: {e}")
-            logger.debug(f"Stack trace: {traceback.format_exc()}")
-            return f"[Transcription error: {str(e)}]"
-
-
-# MLX Whisper transcription service
-class MLXWhisperTranscriptionService(TranscriptionService):
-    """Transcription service using local MLX Whisper model."""
-
-    def __init__(self, model_name: Optional[str] = None):
-        """Initialize the MLX Whisper transcription service.
-
-        Args:
-            model_name: Name of the Whisper model to use. If not provided, it will be read from
-                the MLX_WHISPER_MODEL environment variable or use a default model.
-        """
-        default_model = "mlx-community/whisper-large-v3-turbo"
-        self.model_name = model_name or os.environ.get("MLX_WHISPER_MODEL", default_model)
-        logger.debug(f"Initializing MLX Whisper with model: {self.model_name}")
-
-    def transcribe(self, audio_file: str) -> str:
-        """Transcribe an audio file using local MLX Whisper model.
-
-        Args:
-            audio_file: Path to the audio file to transcribe.
-
-        Returns:
-            Transcribed text.
-        """
-        logger.debug(f"Transcribing audio file with MLX Whisper: {audio_file}")
-
-        try:
-            # Simple check if file exists
-            if not os.path.exists(audio_file):
-                logger.error(f"Audio file not found: {audio_file}")
-                return "[Transcription error: File not found]"
-
-            # Simple check if file is empty
-            if os.path.getsize(audio_file) == 0:
-                logger.error("Audio file is empty")
-                return "[Transcription error: File is empty]"
-
-            # Transcribe using MLX Whisper
-            logger.debug(f"Transcribing with MLX Whisper model: {self.model_name}")
-            result = mlx_whisper.transcribe(audio_file, path_or_hf_repo=self.model_name)
-            transcript = result["text"]
-
-            logger.debug("MLX Whisper transcription successful")
-            return transcript
-
-        except Exception as e:
-            logger.error(f"Error during MLX Whisper transcription: {e}")
-            logger.debug(f"Stack trace: {traceback.format_exc()}")
-            return f"[Transcription error: {str(e)}]"
-
-
-# Factory function to get the appropriate transcription service
-def get_transcription_service(
-    service_name: str, model_name: Optional[str] = None
-) -> TranscriptionService:
-    """Get a transcription service by name.
+def transcribe(audio_file: str, service: str = "mlx", model: str | None = None) -> str:
+    """Transcribe an audio file. Returns the text, or an error marker string on failure.
 
     Args:
-        service_name: Name of the transcription service to use.
-        model_name: Optional model name to use with the service. If provided,
-            it overrides any environment variable or default setting.
-
-    Returns:
-        A transcription service instance.
-
-    Raises:
-        ValueError: If the service name is not recognized.
+        audio_file: Path to the audio file.
+        service: "mlx" (local Whisper) or "remote" (self-hosted ASR server).
+        model: MLX model name; falls back to MLX_WHISPER_MODEL env var, then the default.
     """
-    model_str = model_name or "default"
-    logger.debug(f"Getting transcription service: {service_name} with model: {model_str}")
+    if not os.path.exists(audio_file):
+        logger.error(f"Audio file not found: {audio_file}")
+        return "[Transcription error: File not found]"
+    if os.path.getsize(audio_file) == 0:
+        logger.error("Audio file is empty")
+        return "[Transcription error: File is empty]"
 
-    if service_name.lower() == "groq":
-        logger.debug("Using Groq transcription service")
-        return GroqTranscriptionService(model_name=model_name)
-    elif service_name.lower() == "elevenlabs":
-        logger.debug("Using ElevenLabs transcription service")
-        return ElevenLabsTranscriptionService(model_name=model_name)
-    elif service_name.lower() == "mlx":
-        logger.debug("Using MLX Whisper transcription service")
-        return MLXWhisperTranscriptionService(model_name=model_name)
-    else:
-        logger.error(f"Unknown transcription service: {service_name}")
-        raise ValueError(f"Unknown transcription service: {service_name}")
+    try:
+        if service == "mlx":
+            return _transcribe_mlx(audio_file, model)
+        elif service == "remote":
+            return _transcribe_remote(audio_file)
+        raise ValueError(f"Unknown service: {service} (options: {', '.join(SERVICES)})")
+    except Exception as e:
+        logger.error(f"Error during {service} transcription: {e}")
+        logger.debug(f"Stack trace: {traceback.format_exc()}")
+        return f"[Transcription error: {e}]"
+
+
+def _transcribe_mlx(audio_file: str, model: str | None) -> str:
+    import mlx_whisper  # deferred: importing mlx is slow and remote mode doesn't need it
+
+    model = model or os.environ.get("MLX_WHISPER_MODEL", DEFAULT_MLX_MODEL)
+    logger.debug(f"Transcribing {audio_file} with MLX Whisper model {model}")
+    result = mlx_whisper.transcribe(audio_file, path_or_hf_repo=model)
+    return result["text"]
+
+
+def _transcribe_remote(audio_file: str) -> str:
+    base_url = os.environ.get("LUMI_REMOTE_URL", DEFAULT_REMOTE_URL)
+    url = f"{base_url}/transcribe"
+    logger.debug(f"Sending {audio_file} to {url}")
+    with open(audio_file, "rb") as audio:
+        files = {"file": (os.path.basename(audio_file), audio, "audio/wav")}
+        response = requests.post(url, files=files, timeout=300)
+    response.raise_for_status()
+    return response.json().get("text", "")
