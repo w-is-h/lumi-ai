@@ -14,6 +14,7 @@ parakeet = [
     "nemo-toolkit[asr]>=2.7.3",
 ]
 qwen = [
+    "numba>=0.61",
     "qwen-asr>=0.0.6",
 ]
 ark = [

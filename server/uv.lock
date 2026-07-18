@@ -41,7 +41,7 @@ resolution-markers = [
 ]
 dependencies = [
     { name = "huggingface-hub", marker = "sys_platform == 'linux'" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
     { name = "packaging", marker = "sys_platform == 'linux'" },
     { name = "psutil", marker = "sys_platform == 'linux'" },
     { name = "pyyaml", marker = "sys_platform == 'linux'" },
@@ -782,7 +782,7 @@ version = "2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cython", marker = "sys_platform == 'linux'" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0f/4b/bbc70a71ce666e204f1086e315df6e9094dd6acbc17f55fa6d467e26fce2/dyNET38-2.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:54be808a97fd3cc36476f0d5a932f021739a5c28989f6e217320655c13467978", size = 6252937, upload-time = "2024-06-16T11:36:30.895Z" },
@@ -1032,7 +1032,7 @@ dependencies = [
     { name = "huggingface-hub", marker = "sys_platform == 'linux'" },
     { name = "jinja2", marker = "sys_platform == 'linux'" },
     { name = "markupsafe", marker = "sys_platform == 'linux'" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
     { name = "orjson", marker = "sys_platform == 'linux'" },
     { name = "packaging", marker = "sys_platform == 'linux'" },
     { name = "pandas", marker = "sys_platform == 'linux'" },
@@ -1559,10 +1559,10 @@ dependencies = [
     { name = "joblib", marker = "sys_platform == 'linux'" },
     { name = "lazy-loader", marker = "sys_platform == 'linux'" },
     { name = "msgpack", marker = "sys_platform == 'linux'" },
-    { name = "numba", version = "0.53.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numba", version = "0.66.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numba", version = "0.53.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numba", version = "0.66.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
     { name = "pooch", marker = "sys_platform == 'linux'" },
     { name = "scikit-learn", marker = "sys_platform == 'linux'" },
     { name = "scipy", marker = "sys_platform == 'linux'" },
@@ -1626,8 +1626,11 @@ name = "llvmlite"
 version = "0.48.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13' and sys_platform == 'linux'",
-    "python_full_version < '3.13' and sys_platform == 'linux'",
+    "python_full_version >= '3.14' and sys_platform == 'linux' and extra != 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version == '3.13.*' and sys_platform == 'linux' and extra != 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version < '3.13' and sys_platform == 'linux' and extra != 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra != 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra != 'extra-15-lumi-asr-server-qwen'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/dc/a0/acc8ffcd5bdc63df0097e22c719bfcd61b604358343089313a8aebbb24ab/llvmlite-0.48.0.tar.gz", hash = "sha256:543b19f9ef8f3c7c60d1468191e4ee1b1537bf9f8a3d56f64c0ddd98de92edd2", size = 184016, upload-time = "2026-07-02T20:20:05.308Z" }
 wheels = [
@@ -1663,6 +1666,7 @@ parakeet = [
     { name = "nemo-toolkit", extra = ["asr"], marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
 ]
 qwen = [
+    { name = "numba", version = "0.66.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
     { name = "qwen-asr", marker = "sys_platform == 'linux'" },
 ]
 
@@ -1673,6 +1677,7 @@ requires-dist = [
     { name = "librosa", marker = "extra == 'ark'", specifier = ">=0.11.0" },
     { name = "nemo-toolkit", extras = ["asr"], marker = "extra == 'parakeet'", specifier = ">=2.7.3" },
     { name = "numba", marker = "extra == 'ark'", specifier = ">=0.61" },
+    { name = "numba", marker = "extra == 'qwen'", specifier = ">=0.61" },
     { name = "python-multipart", specifier = ">=0.0.32" },
     { name = "qwen-asr", marker = "extra == 'qwen'", specifier = ">=0.0.6" },
     { name = "torch", marker = "extra == 'ark'", specifier = ">=2.13.0" },
@@ -2054,7 +2059,7 @@ version = "0.2.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dynet38", marker = "sys_platform == 'linux'" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
     { name = "six", marker = "sys_platform == 'linux'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/e1/71/1cc63f4fde1c1ca491ea69b46c3c5bd6bb06f3efa8262f34b227fe25dbf5/nagisa-0.2.11.tar.gz", hash = "sha256:213e8f837c6f7391ea1f56f4fa6047612d117e3f0e9c4f6b93a3a77f78ba6e6f", size = 20930765, upload-time = "2024-01-28T17:32:49.924Z" }
@@ -2180,9 +2185,9 @@ resolution-markers = [
     "python_full_version < '3.13' and sys_platform == 'linux'",
 ]
 dependencies = [
-    { name = "llvmlite", version = "0.36.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "setuptools", marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "llvmlite", version = "0.36.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "setuptools", marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/e3/7d/3d61160836e49f40913741c464f119551c15ed371c1d91ea50308495b93b/numba-0.53.1.tar.gz", hash = "sha256:9cd4e5216acdc66c4e9dab2dfd22ddb5bef151185c070d4a3cd8e78638aff5b0", size = 2213956, upload-time = "2021-03-26T09:15:50.402Z" }
 
@@ -2191,12 +2196,15 @@ name = "numba"
 version = "0.66.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13' and sys_platform == 'linux'",
-    "python_full_version < '3.13' and sys_platform == 'linux'",
+    "python_full_version >= '3.14' and sys_platform == 'linux' and extra != 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version == '3.13.*' and sys_platform == 'linux' and extra != 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version < '3.13' and sys_platform == 'linux' and extra != 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra != 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra != 'extra-15-lumi-asr-server-qwen'",
 ]
 dependencies = [
-    { name = "llvmlite", version = "0.48.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "llvmlite", version = "0.48.0", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ae/a0/570e3dc53e5602b49108f62a13e529f1eec8bfc7ef37d49c825924dcf546/numba-0.66.0.tar.gz", hash = "sha256:b900e63a0e26c05ea9a6d5a3a5a0a177cb64c5011887bf43edb8c3ed2c38d363", size = 2806181, upload-time = "2026-07-01T23:12:46.36Z" }
 wheels = [
@@ -2246,8 +2254,11 @@ name = "numpy"
 version = "2.4.6"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13' and sys_platform == 'linux'",
-    "python_full_version < '3.13' and sys_platform == 'linux'",
+    "python_full_version >= '3.14' and sys_platform == 'linux' and extra != 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version == '3.13.*' and sys_platform == 'linux' and extra != 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version < '3.13' and sys_platform == 'linux' and extra != 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version >= '3.13' and sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra != 'extra-15-lumi-asr-server-qwen'",
+    "python_full_version < '3.13' and sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark' and extra != 'extra-15-lumi-asr-server-parakeet' and extra != 'extra-15-lumi-asr-server-qwen'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d0/ad/fed0499ce6a338d2a03ebae59cd15093910c8875328855781952abf6c2fe/numpy-2.4.6.tar.gz", hash = "sha256:f3a3570c4a2a16746ac2c31a7c7c7b0c186b95ce902e33db6f28094ed7387dda", size = 20735807, upload-time = "2026-05-18T23:37:14.07Z" }
 wheels = [
@@ -2611,7 +2622,8 @@ name = "pandas"
 version = "3.0.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
     { name = "python-dateutil", marker = "sys_platform == 'linux'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f8/87/4341c6252d1c47b08768c3d25ac487362bf403f0313ddae4a2a26c9b1b4c/pandas-3.0.3.tar.gz", hash = "sha256:696a4a00a2a2a35d4e5deb3fc946641b96c944f02230e4f76137fe35d806c4fc", size = 4651414, upload-time = "2026-05-11T18:54:29.21Z" }
@@ -3409,8 +3421,8 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "joblib", marker = "sys_platform == 'linux'" },
     { name = "narwhals", marker = "sys_platform == 'linux'" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
     { name = "scipy", marker = "sys_platform == 'linux'" },
     { name = "threadpoolctl", marker = "sys_platform == 'linux'" },
 ]
@@ -3431,8 +3443,8 @@ name = "scipy"
 version = "1.18.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a7/25/c2700dfaf6442b4effaa91af24ebce5dc9d31bb4a69706313aae70d72cd0/scipy-1.18.0.tar.gz", hash = "sha256:67b2ad2ad54c72ca6d04975a9b2df8c3638c34ddd5b28738e94fc2b57929d378", size = 30774447, upload-time = "2026-06-19T15:01:43.456Z" }
 wheels = [
@@ -3545,8 +3557,8 @@ version = "0.14.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cffi", marker = "sys_platform == 'linux'" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
     { name = "typing-extensions", marker = "sys_platform == 'linux'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d2/db/949331952a6fb1c5b12e9de80fd08747966c2039d1a61db4764fbd3981c2/soundfile-0.14.0.tar.gz", hash = "sha256:ba1c1a2d618bca5c406647c83b89f07cc8810fa506a50622a6993ba130c1de11", size = 47842, upload-time = "2026-06-06T08:58:47.869Z" }
@@ -3561,7 +3573,8 @@ name = "sox"
 version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
     { name = "typing-extensions", marker = "sys_platform == 'linux'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/3d/a2/d8e0d8fd7abf509ead4a2cb0fb24e5758b5330166bf9223d5cb9f98a7e8d/sox-1.5.0.tar.gz", hash = "sha256:12c7be5bb1f548d891fe11e82c08cf5f1a1d74e225298f60082e5aeb2469ada0", size = 63905, upload-time = "2024-03-20T16:59:37.385Z" }
@@ -3571,8 +3584,8 @@ name = "soxr"
 version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ed/11/27cebce4a108f77afea7c80545115536b45e3f11ebfb914f638fdd9ba847/soxr-1.1.0.tar.gz", hash = "sha256:9f228ae21c78fa9359ca98d8a5e8e91f30639e438e574133dace62c5b5309e44", size = 173067, upload-time = "2026-05-03T00:15:18.214Z" }
 wheels = [
@@ -3587,7 +3600,7 @@ name = "soynlp"
 version = "0.0.493"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
     { name = "psutil", marker = "sys_platform == 'linux'" },
     { name = "scikit-learn", marker = "sys_platform == 'linux'" },
     { name = "scipy", marker = "sys_platform == 'linux'" },
@@ -3883,8 +3896,8 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock", marker = "sys_platform == 'linux'" },
     { name = "huggingface-hub", marker = "sys_platform == 'linux'" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-ark') or (sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen')" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-parakeet' and extra == 'extra-15-lumi-asr-server-qwen') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-parakeet') or (extra == 'extra-15-lumi-asr-server-ark' and extra == 'extra-15-lumi-asr-server-qwen')" },
     { name = "packaging", marker = "sys_platform == 'linux'" },
     { name = "pyyaml", marker = "sys_platform == 'linux'" },
     { name = "regex", marker = "sys_platform == 'linux'" },
