@@ -56,10 +56,18 @@ def load_qwen():
         max_new_tokens=1024,
     )
 
+    # Optional context biasing: free text (e.g. a hotword list) injected as the
+    # chat template's system message, a trained-in Qwen3-ASR feature. Personal
+    # vocabulary stays out of this public repo — it rides the env var.
+    context = os.environ.get("ASR_CONTEXT", "")
+
     # qwen_asr batches internally; one call per file keeps us off its unverified
     # list API. Sequential, so no batch speedup on this backend.
     def transcribe_batch(paths: list[str]) -> list[str]:
-        return [model.transcribe(audio=path, language=None)[0].text for path in paths]
+        return [
+            model.transcribe(audio=path, context=context, language=None)[0].text
+            for path in paths
+        ]
 
     return transcribe_batch
 
