@@ -59,9 +59,7 @@ def _gate_silences_to_temp(audio_file: str) -> str:
         fd, gated_file = tempfile.mkstemp(suffix=".wav", prefix="lumi_gated_")
         os.close(fd)
         audio_prep.save_wav(gated_file, gated, rate)
-        logger.debug(
-            f"Silence gating: {len(samples) / rate:.1f}s -> {len(gated) / rate:.1f}s"
-        )
+        logger.debug(f"Silence gating: {len(samples) / rate:.1f}s -> {len(gated) / rate:.1f}s")
         return gated_file
     except Exception as e:
         logger.warning(f"Silence gating skipped: {e}")
@@ -104,8 +102,7 @@ def _transcribe_remote(audio_file: str) -> str:
             audio_prep.save_wav(chunk_file, chunk, rate)
             chunk_files.append(chunk_file)
         files = [
-            ("files", (os.path.basename(p), open(p, "rb").read(), "audio/wav"))
-            for p in chunk_files
+            ("files", (os.path.basename(p), open(p, "rb").read(), "audio/wav")) for p in chunk_files
         ]
     finally:
         for p in chunk_files:

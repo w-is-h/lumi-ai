@@ -1,14 +1,18 @@
 """Lumi speech-to-text: double-tap the Option key to record, transcribe, and paste."""
 
 import argparse
+import glob
 import logging
 import os
 import platform
+import subprocess
 import tempfile
+import threading
 import time
 import traceback
 import wave
 
+import numpy as np
 import pyaudio
 import pyperclip
 from nava import play
@@ -29,7 +33,11 @@ DOUBLE_TAP_TIME = 0.3  # Maximum time between taps to count as double-tap
 TEMP_DIR = os.path.join(tempfile.gettempdir(), "speech_to_text")
 START_SOUND_FILE = "ding.mp3"  # Located in the same folder as this module
 STOP_SOUND_FILE = "dong.mp3"
-PREFERRED_MIC = "wireless microphone rx"  # Picked over the system default when present
+PREFERRED_MICS = ("airpods", "macbook")  # Name substrings, first match wins; then system default
+SILENT_PEAK = 100  # int16 peak below this means the mic delivered no usable signal
+# (a dead capture stream — e.g. idle AirPods over Bluetooth — yields exact zeros;
+# real speech peaks in the thousands)
+EARLY_SILENCE_CHECK_S = 3  # Kill the take this many seconds in if the mic only delivered zeros
 
 # Runtime settings (overridden by CLI flags)
 SERVICE = "mlx"
@@ -46,9 +54,13 @@ CHANNELS = 1
 RATE = 16000
 CHUNK = 1024
 
+OPTION_KEYS = (keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r)
+CMD_KEYS = (keyboard.Key.cmd, keyboard.Key.cmd_l, keyboard.Key.cmd_r)
+
 # State tracking
 recording = False
 last_option_press_time = 0
+last_cmd_press_time = 0
 frames = []
 stream = None
 audio = None
@@ -64,12 +76,17 @@ def setup_audio():
 
 
 def get_default_input_device():
-    """Get the input device, preferring PREFERRED_MIC if available."""
-    for i in range(audio.get_device_count()):
-        info = audio.get_device_info_by_index(i)
-        if info["maxInputChannels"] > 0 and PREFERRED_MIC in info["name"].lower():
-            logger.info(f"Found preferred microphone: {info['name']}")
-            return i
+    """Get the input device, walking PREFERRED_MICS in order before the system default."""
+    inputs = [
+        (i, audio.get_device_info_by_index(i)["name"])
+        for i in range(audio.get_device_count())
+        if audio.get_device_info_by_index(i)["maxInputChannels"] > 0
+    ]
+    for preferred in PREFERRED_MICS:
+        for i, name in inputs:
+            if preferred in name.lower():
+                logger.info(f"Found preferred microphone: {name}")
+                return i
 
     try:
         info = audio.get_default_input_device_info()
@@ -87,6 +104,42 @@ def get_default_input_device():
                 return i
 
         raise Exception("No input devices found") from None
+
+
+def notify(message: str) -> None:
+    """Show a desktop notification (macOS); elsewhere the log line has to do.
+
+    Banners post under Script Editor's identity — it must be allowed under
+    System Settings > Notifications.
+    """
+    if platform.system() != "Darwin":
+        return
+    try:
+        subprocess.run(
+            ["osascript", "-e", f'display notification "{message}" with title "lumi"'],
+            check=False,
+            capture_output=True,
+            timeout=5,
+        )
+    except Exception as e:
+        logger.debug(f"Notification failed: {e}")
+
+
+def _kill_if_silent():
+    """Timer callback EARLY_SILENCE_CHECK_S into a take: kill it if only zeros so far.
+
+    stop_recording's own silence guard then handles the user-facing part
+    (notification, kept wav, no transcription).
+    """
+    local_frames = list(frames)
+    if not recording or not local_frames:
+        return
+    peak = int(np.abs(np.frombuffer(b"".join(local_frames), dtype=np.int16)).max())
+    if peak < SILENT_PEAK:
+        logger.error(
+            f"Mic delivered only silence {EARLY_SILENCE_CHECK_S}s in — stopping the recording"
+        )
+        stop_recording()
 
 
 def play_sound(is_start=True):
@@ -131,6 +184,9 @@ def start_recording():
                 frames.append(in_data)
             return (None, pyaudio.paContinue)
 
+        # Set before the stream starts so the callback keeps the first buffers
+        recording = True
+
         stream = audio.open(
             format=FORMAT,
             channels=CHANNELS,
@@ -142,8 +198,8 @@ def start_recording():
         )
 
         stream.start_stream()
+        threading.Timer(EARLY_SILENCE_CHECK_S, _kill_if_silent).start()
         logger.info("Recording started...")
-        recording = True
 
     except Exception as e:
         logger.error(f"Error starting recording: {e}")
@@ -190,20 +246,25 @@ def stop_recording():
         timestamp = time.strftime("%Y%m%d-%H%M%S")
         temp_file = os.path.join(TEMP_DIR, f"recording_{timestamp}.wav")
 
+        raw = b"".join(local_frames)
         with wave.open(temp_file, "wb") as wf:
             wf.setnchannels(CHANNELS)
             wf.setsampwidth(audio.get_sample_size(FORMAT))
             wf.setframerate(RATE)
-            wf.writeframes(b"".join(local_frames))
+            wf.writeframes(raw)
 
         logger.info(f"Recording saved to {temp_file}")
 
-        transcript = transcribe(temp_file, service=SERVICE, model=MODEL)
-        if transcript:
-            pyperclip.copy(transcript)
-            logger.info(f"Transcript copied to clipboard: {transcript}")
-            if AUTO_PASTE:
-                auto_paste()
+        peak = int(np.abs(np.frombuffer(raw, dtype=np.int16)).max())
+        if peak < SILENT_PEAK:
+            logger.error(
+                f"Recording is silent (peak {peak}) — the mic delivered no signal. "
+                f"Check the input device (idle Bluetooth mics record zeros). Kept {temp_file}"
+            )
+            notify("Recording was silent — the mic delivered nothing. Check input device.")
+            return
+
+        transcribe_and_paste(temp_file)
 
     except Exception as e:
         logger.error(f"Error stopping recording: {e}")
@@ -213,13 +274,43 @@ def stop_recording():
         recording = False
 
 
-def on_press(key):
-    """Detect double-tap of the Option key to start, single tap to stop."""
-    global last_option_press_time, recording
+def transcribe_and_paste(audio_file):
+    """Transcribe a wav and deliver the text: clipboard, then paste."""
+    transcript = transcribe(audio_file, service=SERVICE, model=MODEL)
+    if transcript:
+        pyperclip.copy(transcript)
+        logger.info(f"Transcript copied to clipboard: {transcript}")
+        if AUTO_PASTE:
+            auto_paste()
+    else:
+        logger.warning("Transcription came back empty — nothing to paste")
+        notify("Transcription came back empty.")
 
-    if key in (keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r):
+
+def resend_last_recording():
+    """Re-transcribe the newest saved recording and paste the result."""
+    wavs = glob.glob(os.path.join(TEMP_DIR, "recording_*.wav"))
+    if not wavs:
+        logger.warning("No saved recordings to resend")
+        notify("No saved recordings to resend.")
+        return
+
+    latest = max(wavs, key=os.path.getmtime)
+    logger.info(f"Resending {latest}")
+    play_sound(is_start=True)
+    transcribe_and_paste(latest)
+
+
+def on_press(key):
+    """Double-tap Option starts a recording (single tap stops it);
+    double-tap Cmd resends the last one. Bare taps only — any other key
+    in between means the modifier was part of a chord, not a tap."""
+    global last_option_press_time, last_cmd_press_time, recording
+
+    if key in OPTION_KEYS:
         current_time = time.time()
         time_diff = current_time - last_option_press_time
+        last_cmd_press_time = 0
 
         if recording:
             stop_recording()
@@ -232,6 +323,24 @@ def on_press(key):
             last_option_press_time = 0
         else:
             last_option_press_time = current_time
+
+    elif key in CMD_KEYS:
+        current_time = time.time()
+        time_diff = current_time - last_cmd_press_time
+        last_option_press_time = 0
+
+        if recording:
+            return
+
+        if 0 < time_diff < DOUBLE_TAP_TIME:
+            last_cmd_press_time = 0
+            resend_last_recording()
+        else:
+            last_cmd_press_time = current_time
+
+    else:
+        last_option_press_time = 0
+        last_cmd_press_time = 0
 
 
 def auto_paste():
